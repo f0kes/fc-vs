@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Army;
+using Army.Units;
 
 namespace Graphics
 {

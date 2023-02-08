@@ -64,6 +64,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 
 	uint nearbyCount = 1; // Add self that is ignored in loop
 	float minSqrDist = NeighbourDistance * NeighbourDistance;
+	boid.targeted_unit = -1;
 	
 	for (uint i = 0; i < BoidsCount; i++)
 	{

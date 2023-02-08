@@ -4,6 +4,7 @@ using Army;
 using DefaultNamespace.Enums;
 using GameState;
 using UnityEngine;
+// using Army.Unit = Unit;
 
 namespace AI.GPUFlock
 {
@@ -19,14 +20,15 @@ namespace AI.GPUFlock
 	public class FlocksHandler : MonoBehaviour
 	{
 		[SerializeField] private ComputeShader _computeFlock;
-		private List<IUnitBufferHandler> _handlers = new List<IUnitBufferHandler>();
+		const int THREADS = 256;
+		private List<IUnitGroupSerializer> _handlers = new List<IUnitGroupSerializer>();
 		private int[] _bufferSizes;
 		private int _kernel;
 		private int _stride;
 		private GPUUnitDraw[] _units;
 		private ComputeBuffer _unitsBuffer;
 		public static FlocksHandler Instance{get; private set;}
-		const int THREADS = 256;
+		public List<Army.Units.Unit> Units{get; private set;} = new List<Army.Units.Unit>();
 
 		private void Awake()
 		{
@@ -58,9 +60,9 @@ namespace AI.GPUFlock
 
 			for(var i = 0; i < _handlers.Count; i++)
 			{
-				flockBuffers[i] = _handlers[i].GetBuffer();
+				flockBuffers[i] = _handlers[i].Serialize();
 			}
-			
+
 			//get all buffer sizes sum
 			var bufferSize = 0;
 			for(var i = 0; i < flockBuffers.Length; i++)
@@ -106,15 +108,15 @@ namespace AI.GPUFlock
 				var handler = _handlers[i];
 				var buffer = new GPUUnitDraw[length];
 				Array.Copy(_units, pointer, buffer, 0, length);
-				handler.SetBuffer(buffer);
+				handler.Deserialize(buffer);
 				pointer += length;
 			}
 		}
-		public void AddUnitBufferHandler(IUnitBufferHandler handler)
+		public void AddUnitBufferHandler(IUnitGroupSerializer handler)
 		{
 			_handlers.Add(handler);
 		}
-		public void RemoveUnitBufferHandler(IUnitBufferHandler handler)
+		public void RemoveUnitBufferHandler(IUnitGroupSerializer handler)
 		{
 			_handlers.Remove(handler);
 		}

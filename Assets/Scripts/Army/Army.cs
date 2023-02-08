@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Army.Units;
 using Datastructures.KDTree;
 using DataStructures.ViliWonka.KDTree;
 using DefaultNamespace;
@@ -35,8 +36,8 @@ namespace Army
 		[SerializeField] private float _unitDensity = 15f;
 		public int Team;
 
-		private readonly List<Unit> _units = new List<Unit>();
-		public List<Unit> Units => _units;
+		private readonly UnitGroup _units = new UnitGroup();
+		public UnitGroup Units => _units;
 		public StatDict<ArmyStat> Stats = new StatDict<ArmyStat>();
 
 
@@ -51,7 +52,7 @@ namespace Army
 			float armyHeight = 9f / 16f;
 			_formation = new PointFormation();
 
-			_armyKDTree = new ArmyKDTree(_units);
+			_armyKDTree = new ArmyKDTree(_units.List);
 			//Teams.AddArmyToTeam(this);
 			Stats = _serializableArmyStats.GetStats();
 		}
@@ -64,7 +65,7 @@ namespace Army
 			_armyMover.Init(armyMoverArgs);
 			_inputHandler.OnMove += _armyMover.SetTarget;
 			_inputHandler.OnClick += _armyMover.MoveInRadius;
-			_armyInstancer.CreateInstances(_units);
+			_armyInstancer.CreateInstances(_units.List);
 		}
 
 
@@ -78,25 +79,14 @@ namespace Army
 		private void SpawnInRandomPosition()
 		{
 			var randomPosition = Random.insideUnitCircle * 10f;
-			AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats));
+			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats));
 		}
-		private void AddUnit(Unit unit)
-		{
-			_units.Add(unit);
-			unit.OnUnitKilled += RemoveUnit;
-
-			void RemoveUnit()
-			{
-				_units.Remove(unit);
-				unit.OnUnitKilled -= RemoveUnit;
-			}
-		}
+		
 		//TODO: change all updates to ontick
 		private void Update()
 		{
-			_armyInstancer.UpdatePositions(_units);
-			var positions = _units.Select(unit => unit.Position).ToList();
-			//TODO: build inside kd tree, update it instead
+			_armyInstancer.UpdatePositions(_units.List);
+			var positions = _units.GetPositions().ToList();
 			_armyKDTree.Build(positions);
 		}
 

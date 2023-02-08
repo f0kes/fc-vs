@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Army
 {
 
-	public class ArmyMoverFlock : MonoBehaviour, IArmyMover, IUnitBufferHandler
+	public class ArmyMoverFlock : MonoBehaviour, IArmyMover, IUnitGroupSerializer
 	{
 		[SerializeField] private Transform _targetTransform;
 		private Tracked<Vector2> _target = new Tracked<Vector2>(Vector2.zero);
@@ -33,13 +33,13 @@ namespace Army
 		}
 
 
-		public GPUUnitDraw[] GetBuffer()
+		public GPUUnitDraw[] Serialize()
 		{
-			_units = new GPUUnitDraw[_args.Units.Count];
-			for(int i = 0; i < _args.Units.Count; i++)
+			_units = new GPUUnitDraw[_args.Units.List.Count];
+			for(int i = 0; i < _args.Units.List.Count; i++)
 			{
-				_units[i].Position = _args.Units[i].Position;
-				_units[i].Direction = _args.Units[i].Direction;
+				_units[i].Position = _args.Units.List[i].Position;
+				_units[i].Direction = _args.Units.List[i].Direction;
 				_units[i].TargetPos = _target.Value;
 				_units[i].Noise_Offset = 1f;
 				_units[i].Team = _args.Team;
@@ -47,14 +47,14 @@ namespace Army
 			return _units;
 		}
 
-		public void SetBuffer(GPUUnitDraw[] buffer)
+		public void Deserialize(GPUUnitDraw[] buffer)
 		{
 			_units = buffer;
 			for(int i = 0; i < buffer.Length; i++)
 			{
-				_args.Units[i].Position = _units[i].Position;
-				_args.Units[i].Direction = _units[i].Direction;
-				_args.Units[i].TargetIndex = _units[i].TargetedUnit;
+				_args.Units.List[i].Position = _units[i].Position;
+				_args.Units.List[i].Direction = _units[i].Direction;
+				_args.Units.List[i].TargetIndex = _units[i].TargetedUnit;
 			}
 		}
 
@@ -66,7 +66,7 @@ namespace Army
 		}
 		private void SetTargetOffset(Vector2 dir)
 		{
-			_center = _args.Units.Select(x => x.Position).Aggregate((x, y) => x + y) / _args.Units.Count;
+			_center = _args.Units.List.Select(x => x.Position).Aggregate((x, y) => x + y) / _args.Units.List.Count;
 			_offset = dir * _args.ArmyRadius * 1.1f;
 			_target.Set(_center + _offset);
 		}
