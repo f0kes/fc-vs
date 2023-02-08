@@ -17,7 +17,7 @@ namespace GameState
 			public float DeltaTime;
 		}
 
-		private static float _tickRate = 60f;
+		private static float _tickRate = 240f;
 		public static float TickInterval => 1f / _tickRate;
 		private static float _currentTickTime = 0f;
 

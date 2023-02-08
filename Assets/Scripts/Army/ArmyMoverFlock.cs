@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AI.GPUFlock;
 using Datastructures;
 using DefaultNamespace.Enums;
 using Formations.Scripts;
@@ -9,13 +10,7 @@ using UnityEngine;
 
 namespace Army
 {
-	public struct GPUUnitDraw
-	{
-		public Vector2 Position;
-		public Vector2 Direction;
-		public Vector2 TargetPos;
-		public float Noise_Offset;
-	}
+	
 	public class ArmyMoverFlock : MonoBehaviour, IArmyMover, IUnitBufferHandler
 	{
 		[SerializeField] private ComputeShader _computeFlock;
@@ -41,8 +36,13 @@ namespace Army
 		private void Start()
 		{
 			_kernel = _computeFlock.FindKernel("CSMain");
+			FlocksHandler.Instance.AddUnitBufferHandler(this);
 		}
 		private void Update()
+		{
+			
+		}
+		private void LocalUpdate()
 		{
 			if(_args.Units.Count == 0)
 				return;
@@ -104,7 +104,7 @@ namespace Army
 		public void SetBuffer(GPUUnitDraw[] buffer)
 		{
 			_units = buffer;
-			for(int i = 0; i < _args.Units.Count; i++)
+			for(int i = 0; i < buffer.Length; i++)
 			{
 				_args.Units[i].Position = _units[i].Position;
 				_args.Units[i].Direction = _units[i].Direction;

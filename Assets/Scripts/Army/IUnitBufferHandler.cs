@@ -1,4 +1,6 @@
-﻿namespace Army
+﻿using AI.GPUFlock;
+
+namespace Army
 {
 	public interface IUnitBufferHandler
 	{
