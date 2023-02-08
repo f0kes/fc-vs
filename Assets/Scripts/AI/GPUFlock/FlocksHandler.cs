@@ -13,6 +13,8 @@ namespace AI.GPUFlock
 		public Vector2 Direction;
 		public Vector2 TargetPos;
 		public float Noise_Offset;
+		public uint Team;
+		public int TargetedUnit;
 	}
 	public class FlocksHandler : MonoBehaviour
 	{
@@ -37,7 +39,7 @@ namespace AI.GPUFlock
 			}
 			Ticker.OnTick += OnTick;
 			_kernel = _computeFlock.FindKernel("CSMain");
-			_stride = (sizeof(float) * 2) * 3 + sizeof(float); // 3 vectors2 + 1 float
+			_stride = (sizeof(float) * 2) * 3 + sizeof(float) + sizeof(uint) + sizeof(int); // 3 vectors2 + 1 float + 1 uint
 		}
 
 		private void OnTick(Ticker.OnTickEventArgs obj)
@@ -52,17 +54,16 @@ namespace AI.GPUFlock
 		{
 			//cache all buffers
 			var flockBuffers = new GPUUnitDraw[_handlers.Count][];
-
 			_bufferSizes = new int[_handlers.Count];
 
-			for(int i = 0; i < _handlers.Count; i++)
+			for(var i = 0; i < _handlers.Count; i++)
 			{
 				flockBuffers[i] = _handlers[i].GetBuffer();
 			}
-
+			
 			//get all buffer sizes sum
-			int bufferSize = 0;
-			for(int i = 0; i < flockBuffers.Length; i++)
+			var bufferSize = 0;
+			for(var i = 0; i < flockBuffers.Length; i++)
 			{
 				var length = flockBuffers[i].Length;
 				_bufferSizes[i] = length;
@@ -74,13 +75,11 @@ namespace AI.GPUFlock
 			_unitsBuffer = new ComputeBuffer(bufferSize, _stride);
 
 			int pointer = 0;
-			foreach(var flockBuffer in flockBuffers)
+			//concat all buffers
+			foreach(var buffer in flockBuffers)
 			{
-				for (int i = 0; i < flockBuffer.Length; i++)
-				{
-					_units[i + pointer] = flockBuffer[i];
-				}
-				pointer += flockBuffer.Length;
+				buffer.CopyTo(_units, pointer);
+				pointer += buffer.Length;
 			}
 			_unitsBuffer.SetData(_units);
 		}

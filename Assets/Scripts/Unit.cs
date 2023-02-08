@@ -16,6 +16,7 @@ public class Unit
 	public Vector2 Position{get;  set;}
 	public float Health{get; private set;}
 	public Vector2 Direction{get; set;}
+	public int TargetIndex{get; set;}
 
 	public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats)
 	{

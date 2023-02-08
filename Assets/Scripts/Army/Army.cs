@@ -29,6 +29,7 @@ namespace Army
 		[SerializeField] private SerializableArmyStats _serializableArmyStats;
 
 		[SerializeField] private int _initialUnits = 6000;
+		[SerializeField] private uint _team = 0;
 
 		//perfect density is 15 per square unit
 		[SerializeField] private float _unitDensity = 15f;
@@ -48,7 +49,7 @@ namespace Army
 
 			float armyWidth = 16f / 9f;
 			float armyHeight = 9f / 16f;
-			_formation = new BoxFormation(armyWidth, armyHeight, false, 0.5f, _unitDensity);
+			_formation = new PointFormation();
 
 			_armyKDTree = new ArmyKDTree(_units);
 			//Teams.AddArmyToTeam(this);
@@ -59,6 +60,7 @@ namespace Army
 		{
 			InitialiseArmy();
 			var armyMoverArgs = new ArmyMoverArgs(_units, Stats, _armyKDTree, Helpers.CalculateArmyRange(_initialUnits, _unitDensity), _formation);
+			armyMoverArgs.Team = _team;
 			_armyMover.Init(armyMoverArgs);
 			_inputHandler.OnMove += _armyMover.SetTarget;
 			_inputHandler.OnClick += _armyMover.MoveInRadius;
@@ -68,14 +70,15 @@ namespace Army
 
 		private void InitialiseArmy()
 		{
-			foreach(var pos in _formation.EvaluatePoints(_initialUnits))
+			for (int i = 0; i < _initialUnits; i++)
 			{
-				if(_units.Count >= _initialUnits)
-				{
-					break;
-				}
-				AddUnit(new Unit(100, pos, _armyKDTree, Stats));
+				SpawnInRandomPosition();
 			}
+		}
+		private void SpawnInRandomPosition()
+		{
+			var randomPosition = Random.insideUnitCircle * 10f;
+			AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats));
 		}
 		private void AddUnit(Unit unit)
 		{

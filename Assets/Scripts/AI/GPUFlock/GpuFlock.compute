@@ -32,6 +32,8 @@ struct Boid
 	float2 direction;
 	float2 target_pos;
 	float noise_offset;
+	uint team;
+	int targeted_unit;
 };
 
 RWStructuredBuffer<Boid> boidBuffer;
@@ -61,13 +63,25 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 	float2 to_target = boid.target_pos;
 
 	uint nearbyCount = 1; // Add self that is ignored in loop
+	float minSqrDist = NeighbourDistance * NeighbourDistance;
+	
 	for (uint i = 0; i < BoidsCount; i++)
 	{
 		if (i == instanceId)
 			continue;
-
+		
 		if (distance(boid_pos, boidBuffer[i].position) < NeighbourDistance)
 		{
+			if(boidBuffer[i].team != boid.team)
+			{
+				float2 diff_enemy = boid_pos - boidBuffer[i].position;
+				float sqrDist = dot(diff_enemy, diff_enemy);
+				if (sqrDist < minSqrDist)
+				{
+					boid.targeted_unit = i;
+					minSqrDist = sqrDist;
+				}
+			}
 			float2 tempBoid_position = boidBuffer[i].position;
 
 			float2 diff = boid_pos - tempBoid_position;
@@ -84,6 +98,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 
 	//float avg = 1.0 / nearbyCount;
 	//cohesion *= avg;
+	
 
 
 	to_target = norm(to_target - boid_pos);

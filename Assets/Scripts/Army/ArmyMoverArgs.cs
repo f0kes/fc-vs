@@ -12,6 +12,8 @@ namespace Army
 		public readonly ArmyKDTree ArmyKDTree;
 		public readonly float ArmyRadius;
 		public readonly FormationBase Formation;
+		
+		public uint Team { get; set; }
 		public ArmyMoverArgs(List<Unit> units, StatDict<ArmyStat> stats, ArmyKDTree armyKDTree, float armyRadius, FormationBase formation)
 		{
 			Units = units;
@@ -19,6 +21,7 @@ namespace Army
 			ArmyKDTree = armyKDTree;
 			ArmyRadius = armyRadius;
 			Formation = formation;
+			Team = 0;
 		}
 	}
 }

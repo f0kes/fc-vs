@@ -35,7 +35,7 @@ namespace Graphics
 			Batches.Add(new List<Matrix4x4>());
 			for(int i = 0; i < army.Count; i++)
 			{
-				Vector3 position = new Vector3(army[i].Position.x, 0, army[i].Position.y);
+				Vector3 position = new Vector3(army[i].Position.x, army[i].TargetIndex*0.01f, army[i].Position.y);
 				if(Batches[Batches.Count - 1].Count > 1000)
 				{
 					Batches.Add(new List<Matrix4x4>());
