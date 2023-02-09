@@ -5,6 +5,10 @@
 		Speed,
 		Acceleration,
 		Deceleration,
-		RotationSpeed
+		RotationSpeed,
+		Damage,
+		Health,
+		AttackSpeed,
+		AttackRange,
 	}
 }

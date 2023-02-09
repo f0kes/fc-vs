@@ -42,19 +42,19 @@ namespace Army
 		// }
 		public void SetTarget(Vector2 dir)
 		{
-			_center = _armyMoverArgs.Units.List.Select(x => x.Position).Aggregate((x, y) => x + y) / _armyMoverArgs.Units.List.Count;
+			_center = _armyMoverArgs.Units.Units.Select(x => x.Position).Aggregate((x, y) => x + y) / _armyMoverArgs.Units.Units.Count;
 			_offset = dir * _armyMoverArgs.ArmyRadius * 1.1f;
 			_target.Set(_center + _offset);
 		}
 		private void Move()
 		{
-			var points = _armyMoverArgs.Formation.EvaluatePoints(_armyMoverArgs.Units.List.Count).ToArray();
+			var points = _armyMoverArgs.Formation.EvaluatePoints(_armyMoverArgs.Units.Units.Count).ToArray();
 			var target = _target.Value;
 			if(_offset == Vector2.zero)
 				return;
-			for(var i = 0; i < _armyMoverArgs.Units.List.Count; i++)
+			for(var i = 0; i < _armyMoverArgs.Units.Units.Count; i++)
 			{
-				var unit = _armyMoverArgs.Units.List[i];
+				var unit = _armyMoverArgs.Units.Units[i];
 				var move = points[i] + target;
 				unit.SetTarget(move);
 			}

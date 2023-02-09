@@ -110,6 +110,17 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 	//float ip = exp();
 	//boid.direction = lerp((direction), normalize(boid_dir), -RotationSpeed * DeltaTime);
 	boid.direction = norm(direction);
+	if(boid.targeted_unit != -1)
+	{
+		float2 from_target_unit = -norm(boidBuffer[boid.targeted_unit].position - boid.position);
+		float dot_p = dot(boid.direction, from_target_unit);
+		if(dot_p < 0.0)
+		{
+			dot_p = 0.1;
+		}
+		velocity = velocity * dot_p;
+		//velocity = velocity * 0.1;
+	}
 
 	boid.position += (boid.direction) * (velocity * DeltaTime);
 

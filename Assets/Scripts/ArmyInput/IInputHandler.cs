@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Army
+namespace ArmyInput
 {
 	public interface IInputHandler
 	{

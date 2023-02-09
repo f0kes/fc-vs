@@ -5,17 +5,17 @@ using AI.GPUFlock;
 using Datastructures;
 using DefaultNamespace.Enums;
 using Formations.Scripts;
+using GameState;
 using Stats;
 using UnityEngine;
 
 namespace Army
 {
 
-	public class ArmyMoverFlock : MonoBehaviour, IArmyMover, IUnitGroupSerializer
+	public class ArmyMoverFlock : MonoBehaviour, IArmyMover
 	{
 		[SerializeField] private Transform _targetTransform;
 		private Tracked<Vector2> _target = new Tracked<Vector2>(Vector2.zero);
-		private GPUUnitDraw[] _units;
 
 		private Vector2 _center;
 		private Vector2 _offset;
@@ -26,49 +26,20 @@ namespace Army
 		public void Init(ArmyMoverArgs args)
 		{
 			_args = args;
-		}
-		private void Start()
-		{
-			FlocksHandler.Instance.AddUnitBufferHandler(this);
+			Ticker.OnTick += OnTick;
 		}
 
-
-		public GPUUnitDraw[] Serialize()
+		private void OnTick(Ticker.OnTickEventArgs obj)
 		{
-			_units = new GPUUnitDraw[_args.Units.List.Count];
-			for(int i = 0; i < _args.Units.List.Count; i++)
+			foreach(var unit in _args.Units.Units)
 			{
-				_units[i].Position = _args.Units.List[i].Position;
-				_units[i].Direction = _args.Units.List[i].Direction;
-				_units[i].TargetPos = _target.Value;
-				_units[i].Noise_Offset = 1f;
-				_units[i].Team = _args.Team;
-			}
-			return _units;
-		}
-
-		public void Deserialize(GPUUnitDraw[] buffer)
-		{
-			_units = buffer;
-			for(int i = 0; i < buffer.Length; i++)
-			{
-				_args.Units.List[i].Position = _units[i].Position;
-				_args.Units.List[i].Direction = _units[i].Direction;
-				_args.Units.List[i].TargetIndex = _units[i].TargetedUnit;
+				unit.TargetPos = _target.Value;
 			}
 		}
-
-
 		public void SetTarget(Vector2 dir)
 		{
 			SetTargetMove(dir);
 			_targetTransform.position = new Vector3(_target.Value.x, 1, _target.Value.y);
-		}
-		private void SetTargetOffset(Vector2 dir)
-		{
-			_center = _args.Units.List.Select(x => x.Position).Aggregate((x, y) => x + y) / _args.Units.List.Count;
-			_offset = dir * _args.ArmyRadius * 1.1f;
-			_target.Set(_center + _offset);
 		}
 		private void SetTargetMove(Vector2 dir)
 		{

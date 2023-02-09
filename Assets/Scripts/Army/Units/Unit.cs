@@ -11,29 +11,52 @@ namespace Army.Units
 		private ArmyKDTree _armyKDTree;
 		public Action OnUnitKilled;
 		private Vector2 _target;
-		private StatDict<ArmyStat> _stats;
-		public Vector2 Position{get;  set;}
+		public StatDict<ArmyStat> Stats{get; private set;}
+		public Vector2 Position{get; set;}
 		public float Health{get; private set;}
 		public Vector2 Direction{get; set;}
 		public int TargetIndex{get; set;} = -1;
 		public uint Team{get; set;}
 		public Vector2 TargetPos{get; set;}
 
-		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats)
+		private float _timeSinceLastAttack = 0;
+
+		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats, uint team)
 		{
 			Health = health;
 			Position = position;
 			_armyKDTree = armyKDTree;
-			_stats = stats;
+			Stats = stats;
+			Team = team;
 			Ticker.OnTick += OnTick;
+		}
+		~Unit()
+		{
+			Ticker.OnTick -= OnTick;
 		}
 
 		private void OnTick(Ticker.OnTickEventArgs obj)
 		{
-			if(_target != Vector2.zero && (_target-Position).sqrMagnitude > 0.01f)
+			_timeSinceLastAttack += obj.DeltaTime;
+			if(_target != Vector2.zero && (_target - Position).sqrMagnitude > 0.01f)
 			{
 				MoveWithDir(_target - Position);
 			}
+			if(CanAttack())
+			{
+				var target = AllUnits.Units[TargetIndex];
+				target.Health -= Stats[ArmyStat.Damage];
+				//target.Position += (target.Position - Position).normalized * Stats[ArmyStat.Damage] * 0.1f;
+				_timeSinceLastAttack = 0;
+			}
+			if(Health <= 0)
+			{
+				Kill();
+			}
+		}
+		private bool CanAttack()
+		{
+			return (_timeSinceLastAttack > 1 / Stats[ArmyStat.AttackSpeed]) && TargetIndex != -1;
 		}
 
 
@@ -45,13 +68,13 @@ namespace Army.Units
 
 		public void MoveWithDir(Vector2 offset)
 		{
-			Position += offset.normalized * _stats[ArmyStat.Speed] * Time.deltaTime;
+			Position += offset * Time.deltaTime;
 		}
 		public void SetTarget(Vector2 target)
 		{
 			_target = target;
 		}
-		
+
 
 	}
 }

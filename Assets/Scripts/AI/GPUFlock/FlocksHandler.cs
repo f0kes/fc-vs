@@ -21,7 +21,7 @@ namespace AI.GPUFlock
 	{
 		[SerializeField] private ComputeShader _computeFlock;
 		const int THREADS = 256;
-		private List<IUnitGroupSerializer> _handlers = new List<IUnitGroupSerializer>();
+		public static readonly List<IUnitGroupSerializer> Serializers = new List<IUnitGroupSerializer>();
 		private int[] _bufferSizes;
 		private int _kernel;
 		private int _stride;
@@ -44,10 +44,10 @@ namespace AI.GPUFlock
 			_stride = (sizeof(float) * 2) * 3 + sizeof(float) + sizeof(uint) + sizeof(int); // 3 vectors2 + 1 float + 1 uint
 		}
 
-		private void OnTick(Ticker.OnTickEventArgs obj)
+		private void OnTick(Ticker.OnTickEventArgs tick)
 		{
 			UpdateBuffer();
-			Dispatch(Ticker.TickInterval);
+			Dispatch(tick.DeltaTime);
 			UpdateHandlers();
 			_unitsBuffer.Release();
 		}
@@ -55,12 +55,12 @@ namespace AI.GPUFlock
 		private void UpdateBuffer()
 		{
 			//cache all buffers
-			var flockBuffers = new GPUUnitDraw[_handlers.Count][];
-			_bufferSizes = new int[_handlers.Count];
+			var flockBuffers = new GPUUnitDraw[Serializers.Count][];
+			_bufferSizes = new int[Serializers.Count];
 
-			for(var i = 0; i < _handlers.Count; i++)
+			for(var i = 0; i < Serializers.Count; i++)
 			{
-				flockBuffers[i] = _handlers[i].Serialize();
+				flockBuffers[i] = Serializers[i].Serialize();
 			}
 
 			//get all buffer sizes sum
@@ -102,10 +102,10 @@ namespace AI.GPUFlock
 		{
 			var pointer = 0;
 			_unitsBuffer.GetData(_units);
-			for(int i = 0; i < _handlers.Count; i++)
+			for(int i = 0; i < Serializers.Count; i++)
 			{
 				var length = _bufferSizes[i];
-				var handler = _handlers[i];
+				var handler = Serializers[i];
 				var buffer = new GPUUnitDraw[length];
 				Array.Copy(_units, pointer, buffer, 0, length);
 				handler.Deserialize(buffer);
@@ -114,11 +114,11 @@ namespace AI.GPUFlock
 		}
 		public void AddUnitBufferHandler(IUnitGroupSerializer handler)
 		{
-			_handlers.Add(handler);
+			Serializers.Add(handler);
 		}
 		public void RemoveUnitBufferHandler(IUnitGroupSerializer handler)
 		{
-			_handlers.Remove(handler);
+			Serializers.Remove(handler);
 		}
 	}
 }

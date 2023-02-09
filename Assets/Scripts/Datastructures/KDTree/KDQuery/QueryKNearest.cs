@@ -39,7 +39,7 @@ namespace DataStructures.ViliWonka.KDTree {
         /// <param name="tree">Tree to do search on</param>
         /// <param name="queryPosition">Position</param>
         /// <param name="k">Max number of points</param>
-        /// <param name="resultIndices">List where resulting indices will be stored</param>
+        /// <param name="resultIndices">Units where resulting indices will be stored</param>
         /// <param name="resultDistances">Optional list where resulting distances will be stored</param>
         public void KNearest(Datastructures.KDTree.KDTree tree, Vector2 queryPosition, int k, List<int> resultIndices, List<float> resultDistances = null) {
 

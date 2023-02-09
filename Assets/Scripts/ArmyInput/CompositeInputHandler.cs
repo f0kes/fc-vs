@@ -1,12 +1,14 @@
 using System;
 using UnityEngine;
 
-namespace Army
+namespace ArmyInput
 {
-    public class DummyInputHandler : MonoBehaviour, IInputHandler
+    public class CompositeInputHandler : MonoBehaviour, IInputHandler
     {
         public event Action<Vector2> OnMove;
         public event Action<Vector2> MouseWorldPosition;
         public event Action<Vector2> OnClick;
+        [SerializeField] private IInputHandler[] _inputHandlers;
+        
     }
 }

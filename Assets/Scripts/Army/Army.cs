@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Army.Units;
+using ArmyInput;
 using Datastructures.KDTree;
 using DataStructures.ViliWonka.KDTree;
 using DefaultNamespace;
@@ -25,7 +26,7 @@ namespace Army
 		private IArmyMover _armyMover;
 		private IInputHandler _inputHandler;
 		private FormationBase _formation;
-		private static ArmyKDTree _armyKDTree;
+		private  ArmyKDTree _armyKDTree;
 
 		[SerializeField] private SerializableArmyStats _serializableArmyStats;
 
@@ -52,7 +53,7 @@ namespace Army
 			float armyHeight = 9f / 16f;
 			_formation = new PointFormation();
 
-			_armyKDTree = new ArmyKDTree(_units.List);
+			_armyKDTree = new ArmyKDTree(_units.Units);
 			//Teams.AddArmyToTeam(this);
 			Stats = _serializableArmyStats.GetStats();
 		}
@@ -60,12 +61,14 @@ namespace Army
 		private void Start()
 		{
 			InitialiseArmy();
-			var armyMoverArgs = new ArmyMoverArgs(_units, Stats, _armyKDTree, Helpers.CalculateArmyRange(_initialUnits, _unitDensity), _formation);
-			armyMoverArgs.Team = _team;
+			var armyMoverArgs = new ArmyMoverArgs(_units, Stats, _armyKDTree, Helpers.CalculateArmyRange(_initialUnits, _unitDensity), _formation)
+			{
+				Team = _team
+			};
 			_armyMover.Init(armyMoverArgs);
 			_inputHandler.OnMove += _armyMover.SetTarget;
 			_inputHandler.OnClick += _armyMover.MoveInRadius;
-			_armyInstancer.CreateInstances(_units.List);
+			_armyInstancer.CreateInstances(_units.Units);
 		}
 
 
@@ -78,14 +81,16 @@ namespace Army
 		}
 		private void SpawnInRandomPosition()
 		{
-			var randomPosition = Random.insideUnitCircle * 10f;
-			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats));
+			var position = transform.position;
+			var pos = new Vector2(position.x, position.z);
+			var randomPosition = Random.insideUnitCircle * 10f + pos;
+			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats, _team));
 		}
 		
 		//TODO: change all updates to ontick
 		private void Update()
 		{
-			_armyInstancer.UpdatePositions(_units.List);
+			_armyInstancer.UpdatePositions(_units.Units);
 			var positions = _units.GetPositions().ToList();
 			_armyKDTree.Build(positions);
 		}

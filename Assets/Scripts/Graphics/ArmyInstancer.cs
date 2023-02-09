@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Army;
 using Army.Units;
+using DefaultNamespace.Enums;
 using UnityEngine;
 
 namespace Graphics
@@ -39,15 +40,17 @@ namespace Graphics
 			{
 				float y;
 				if(army[i].TargetIndex != -1)
-					y = (Mathf.Sin(Time.time * 20) + 1) / 4f;
+					y = (Mathf.Sin(Time.time * 10) + 1.5f) / 10 + 0.5f;
 				else
-					y = 0;
-				Vector3 position = new Vector3(army[i].Position.x, y, army[i].Position.y);
+					y = 1;
+				var scale = army[i].Health / army[i].Stats[ArmyStat.Health];
+
+				Vector3 position = new Vector3(army[i].Position.x, 0, army[i].Position.y);
 				if(Batches[Batches.Count - 1].Count > 1000)
 				{
 					Batches.Add(new List<Matrix4x4>());
 				}
-				Batches[Batches.Count - 1].Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, Vector3.one));
+				Batches[Batches.Count - 1].Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, Vector3.one * scale));
 			}
 		}
 

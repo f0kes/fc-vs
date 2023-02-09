@@ -4,25 +4,30 @@ using UnityEngine;
 
 namespace Army.Units
 {
-	public class UnitGroup:IUnitGroupSerializer
+	public class UnitGroup : IUnitGroupSerializer
 	{
 		private GPUUnitDraw[] _unitBuffer;
-		public List<Unit> List{get;} = new List<Unit>();
+		public List<Unit> Units{get; private set;} = new List<Unit>();
+
 
 		public UnitGroup()
 		{
-			//FlocksHandler.Instance.AddUnitBufferHandler(this);
+			AllUnits.AddUnitGroup(this);
+		}
+		~UnitGroup()
+		{
+			AllUnits.RemoveUnitGroup(this);
 		}
 		public GPUUnitDraw[] Serialize()
 		{
-			_unitBuffer = new GPUUnitDraw[List.Count];
-			for(var i = 0; i < List.Count; i++)
+			_unitBuffer = new GPUUnitDraw[Units.Count];
+			for(var i = 0; i < Units.Count; i++)
 			{
-				_unitBuffer[i].Position = List[i].Position;
-				_unitBuffer[i].Direction = List[i].Direction;
-				_unitBuffer[i].TargetPos = List[i].TargetPos;
+				_unitBuffer[i].Position = Units[i].Position;
+				_unitBuffer[i].Direction = Units[i].Direction;
+				_unitBuffer[i].TargetPos = Units[i].TargetPos;
 				_unitBuffer[i].Noise_Offset = 1f;
-				_unitBuffer[i].Team = List[i].Team;
+				_unitBuffer[i].Team = Units[i].Team;
 			}
 			return _unitBuffer;
 		}
@@ -32,28 +37,28 @@ namespace Army.Units
 			_unitBuffer = buffer;
 			for(var i = 0; i < buffer.Length; i++)
 			{
-				List[i].Position = _unitBuffer[i].Position;
-				List[i].Direction = _unitBuffer[i].Direction;
-				List[i].TargetIndex = _unitBuffer[i].TargetedUnit;
+				Units[i].Position = _unitBuffer[i].Position;
+				Units[i].Direction = _unitBuffer[i].Direction;
+				Units[i].TargetIndex = _unitBuffer[i].TargetedUnit;
 			}
 		}
 		public Vector2[] GetPositions()
 		{
-			var positions = new Vector2[List.Count];
-			for(var i = 0; i < List.Count; i++)
+			var positions = new Vector2[Units.Count];
+			for(var i = 0; i < Units.Count; i++)
 			{
-				positions[i] = List[i].Position;
+				positions[i] = Units[i].Position;
 			}
 			return positions;
 		}
 		public void AddUnit(Unit unit)
 		{
-			List.Add(unit);
+			Units.Add(unit);
 			unit.OnUnitKilled += RemoveUnit;
 
 			void RemoveUnit()
 			{
-				List.Remove(unit);
+				Units.Remove(unit);
 				unit.OnUnitKilled -= RemoveUnit;
 			}
 		}

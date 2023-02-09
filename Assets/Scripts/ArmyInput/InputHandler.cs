@@ -1,12 +1,12 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Army
+namespace ArmyInput
 {
 	public class InputHandler : MonoBehaviour, IInputHandler
 	{
 		[SerializeField] private Camera _camera;
-		
+
 		public event Action<Vector2> OnMove;
 		public event Action<Vector2> MouseWorldPosition;
 		public event Action<Vector2> OnClick;

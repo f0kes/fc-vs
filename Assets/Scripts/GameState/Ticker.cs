@@ -4,12 +4,13 @@ using UnityEngine;
 
 namespace GameState
 {
-	public static class Ticker 
+	public static class Ticker
 	{
 		public class OnTickEventArgs : EventArgs
 		{
 			public int Tick;
 			public bool Simulating;
+			public float DeltaTime;
 		}
 
 		public class OnUpdateEventArgs : EventArgs
@@ -20,10 +21,12 @@ namespace GameState
 		private static float _tickRate = 240f;
 		public static float TickInterval => 1f / _tickRate;
 		private static float _currentTickTime = 0f;
+		private static float _timeSinceLastTick = 0f;
 
 		private static int _currentTick;
 
 		private static bool _isPaused = false;
+		private const bool TickOnUpdate = true;
 
 		public static int CurrentTick
 		{
@@ -34,7 +37,7 @@ namespace GameState
 		public static event Action<OnTickEventArgs> OnTickStart;
 		public static event Action<OnTickEventArgs> OnTick;
 		public static event Action<OnTickEventArgs> OnTickEnd;
-		
+
 
 		public static async void InvokeInTime(Action toInvoke, float time)
 		{
@@ -48,20 +51,29 @@ namespace GameState
 
 			toInvoke.Invoke();
 		}
-		
+
 
 		public static void Update()
 		{
-			if (_isPaused) return;
+			if(_isPaused) return;
 			_currentTickTime += Time.deltaTime;
-			while (_currentTickTime >= TickInterval)
+			_timeSinceLastTick += Time.deltaTime;
+			if(TickOnUpdate)
 			{
-				_currentTickTime -= TickInterval;
 				Tick();
+				_timeSinceLastTick = 0;
 			}
-
+			else
+			{
+				while (_currentTickTime >= TickInterval)
+				{
+					_currentTickTime -= TickInterval;
+					Tick();
+					_timeSinceLastTick = 0;
+				}
+			}
 		}
-		
+
 		public static void Pause()
 		{
 			_isPaused = true;
@@ -75,11 +87,11 @@ namespace GameState
 		public static void Tick(bool simulating = false)
 		{
 			_currentTick++;
-			OnTickStart?.Invoke(new OnTickEventArgs {Tick = _currentTick, Simulating = simulating});
-			OnTick?.Invoke(new OnTickEventArgs {Tick = _currentTick, Simulating = simulating});
-			OnTickEnd?.Invoke(new OnTickEventArgs {Tick = _currentTick, Simulating = simulating});
+			OnTickStart?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
+			OnTick?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
+			OnTickEnd?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
 		}
-		
+
 
 		public static float TicksToSeconds(int ticks)
 		{
@@ -88,7 +100,7 @@ namespace GameState
 
 		public static int SecondsToTicks(float seconds)
 		{
-			return (int) (seconds / TickInterval);
+			return (int)(seconds / TickInterval);
 		}
 	}
 }
