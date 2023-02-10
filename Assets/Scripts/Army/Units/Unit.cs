@@ -1,4 +1,5 @@
 using System;
+using Army.Units.UnitEventArgs;
 using DefaultNamespace.Enums;
 using GameState;
 using Graphics;
@@ -9,8 +10,12 @@ namespace Army.Units
 {
 	public class Unit
 	{
+		public EventHandler<UnitKilledEventArgs> OnUnitKilled;
+		public EventHandler<UnitDamagedEventArgs> OnUnitDamaged;
+		public EventHandler<UnitAttackedEventArgs> OnUnitAttackPerformed;
+
 		private ArmyKDTree _armyKDTree;
-		public Action OnUnitKilled;
+
 		public IUnitAnimator Animator;
 		private Vector2 _target;
 		public StatDict<ArmyStat> Stats{get; private set;}
@@ -19,7 +24,7 @@ namespace Army.Units
 		public Vector2 Direction{get; set;}
 		public int TargetIndex{get; set;} = -1;
 		public uint Team{get; set;}
-		public int XScale{get; set;} = 1; 
+		public int XScale{get; set;} = 1;
 		public Vector2 TargetPos{get; set;}
 
 		private float _timeSinceLastAttack = 0;
@@ -49,7 +54,8 @@ namespace Army.Units
 			if(CanAttack())
 			{
 				var target = AllUnits.Units[TargetIndex];
-				target.Health -= Stats[ArmyStat.Damage];
+				target.Damage(Stats[ArmyStat.Damage]);
+				OnUnitAttackPerformed?.Invoke(this, new UnitAttackedEventArgs() { Attacker = this, Target = target });
 				//target.Position += (target.Position - Position).normalized * Stats[ArmyStat.Damage] * 0.1f;
 				_timeSinceLastAttack = 0;
 			}
@@ -62,11 +68,15 @@ namespace Army.Units
 		{
 			return (_timeSinceLastAttack > 1 / Stats[ArmyStat.AttackSpeed]) && TargetIndex != -1;
 		}
-
+		public void Damage(float damage)
+		{
+			Health -= damage;
+			OnUnitDamaged?.Invoke(this, new UnitDamagedEventArgs() { Target = this, Damage = damage });
+		}
 
 		public void Kill()
 		{
-			OnUnitKilled?.Invoke();
+			OnUnitKilled?.Invoke(this, new UnitKilledEventArgs() { Target = this });
 			Ticker.OnTick -= OnTick;
 		}
 
@@ -81,4 +91,5 @@ namespace Army.Units
 
 
 	}
+
 }

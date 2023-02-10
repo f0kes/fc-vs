@@ -102,8 +102,13 @@ Shader "Unlit/Billboard"
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv) * _Color;
                 fixed4 colAdd = UNITY_ACCESS_INSTANCED_PROP(Props, _ColorAdd);
-                colAdd.a = col.a * colAdd.a;
-                col += colAdd;
+                //colAdd.xyz *= colAdd.a;
+                col.x = col.x * (1 - colAdd.a) + colAdd.x * colAdd.a;
+                col.y = col.y * (1 - colAdd.a) + colAdd.y * colAdd.a;
+                col.z = col.z * (1 - colAdd.a) + colAdd.z * colAdd.a;
+                colAdd.a = col.a;
+                
+                
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;

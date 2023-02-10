@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AI.GPUFlock;
+using Army.Units.UnitEventArgs;
 using UnityEngine;
 
 namespace Army.Units
@@ -60,8 +61,9 @@ namespace Army.Units
 			unit.OnUnitKilled += RemoveUnit;
 			OnUnitAdded?.Invoke(unit);
 
-			void RemoveUnit()
+			void RemoveUnit(object sender, UnitKilledEventArgs eventArgs)
 			{
+				
 				Units.Remove(unit);
 				unit.OnUnitKilled -= RemoveUnit;
 				OnUnitRemoved?.Invoke(unit);

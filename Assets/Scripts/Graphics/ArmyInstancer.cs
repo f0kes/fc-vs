@@ -63,7 +63,7 @@ namespace Graphics
 				}
 				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, new Vector3(army[i].XScale, 1, 1)));
 
-				colors.Add(new Vector4(1 - scale, 0, 0, 1 - scale));
+				colors.Add(new Vector4(1, 0, 0, 1 - scale));
 				frameIndexes.Add(army[i].Animator.CurrentFrameIndex);
 			}
 			batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
