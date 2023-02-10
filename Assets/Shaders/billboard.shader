@@ -11,7 +11,7 @@ Shader "Unlit/Billboard"
         {
             "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "Opaque" "DisableBatching" = "True"
         }
-        
+
         Cull Off
         ZWrite On
         ZTest LEqual
@@ -22,6 +22,8 @@ Shader "Unlit/Billboard"
         Pass
         {
             CGPROGRAM
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
             #pragma vertex vert
             #pragma fragment frag
             // make fog work
@@ -29,6 +31,7 @@ Shader "Unlit/Billboard"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
+            #pragma instancing_options procedural:setup
 
             struct appdata
             {
@@ -45,20 +48,48 @@ Shader "Unlit/Billboard"
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
+
             sampler2D _MainTex;
             float4 _Color;
             float4 _MainTex_ST;
-            
+            float _SpriteSheetData[];
 
-            v2f vert(appdata v)
-            {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            StructuredBuffer<float4> positionBuffer;
+            #endif
+
+            void rotate2D(inout float2 v, float r) {
+                float s, c;
+                sincos(r, s, c);
+                v = float2(v.x * c - v.y * s, v.x * s + v.y * c);
+            }
+ 
+            void setup() {
+                #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+                    /*float4 data = positionBuffer[unity_InstanceID];
+
+                    float rotation = data.w * data.w * _Time.y * 0.5f;
+                    rotate2D(data.xz, rotation);
+
+                    unity_ObjectToWorld._11_21_31_41 = float4(data.w, 0, 0, 0);
+                    unity_ObjectToWorld._12_22_32_42 = float4(0, data.w, 0, 0);
+                    unity_ObjectToWorld._13_23_33_43 = float4(0, 0, data.w, 0);
+                    unity_ObjectToWorld._14_24_34_44 = float4(data.xyz, 1);
+                    unity_WorldToObject = unity_ObjectToWorld;
+                    unity_WorldToObject._14_24_34 *= -1;
+                    unity_WorldToObject._11_22_33 = 1.0f / unity_WorldToObject._11_22_33;*/
+                #endif
+            }
+
+
+            v2f vert(appdata v) {
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
-                
+
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv.xy;
-                
+
 
                 // billboard mesh towards camera
                 float3 vpos = mul((float3x3)unity_ObjectToWorld, v.vertex.xyz);
@@ -73,8 +104,7 @@ Shader "Unlit/Billboard"
                 return o;
             }
 
-            fixed4 frag(v2f i) : SV_Target
-            {
+            fixed4 frag(v2f i) : SV_Target {
                 UNITY_SETUP_INSTANCE_ID(i);
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv) * _Color;
