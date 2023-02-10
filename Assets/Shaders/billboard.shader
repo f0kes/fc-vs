@@ -4,6 +4,7 @@ Shader "Unlit/Billboard"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
+        _ColorAdd ("ColorAdd", Color) = (0,0,0,0)
     }
     SubShader
     {
@@ -22,8 +23,6 @@ Shader "Unlit/Billboard"
         Pass
         {
             CGPROGRAM
-// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
-#pragma exclude_renderers d3d11 gles
             #pragma vertex vert
             #pragma fragment frag
             // make fog work
@@ -31,7 +30,6 @@ Shader "Unlit/Billboard"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
-            #pragma instancing_options procedural:setup
 
             struct appdata
             {
@@ -48,38 +46,13 @@ Shader "Unlit/Billboard"
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-
             sampler2D _MainTex;
-            float4 _Color;
             float4 _MainTex_ST;
-            float _SpriteSheetData[];
+            float4 _Color;
 
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            StructuredBuffer<float4> positionBuffer;
-            #endif
-
-            void rotate2D(inout float2 v, float r) {
-                float s, c;
-                sincos(r, s, c);
-                v = float2(v.x * c - v.y * s, v.x * s + v.y * c);
-            }
- 
-            void setup() {
-                #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                    /*float4 data = positionBuffer[unity_InstanceID];
-
-                    float rotation = data.w * data.w * _Time.y * 0.5f;
-                    rotate2D(data.xz, rotation);
-
-                    unity_ObjectToWorld._11_21_31_41 = float4(data.w, 0, 0, 0);
-                    unity_ObjectToWorld._12_22_32_42 = float4(0, data.w, 0, 0);
-                    unity_ObjectToWorld._13_23_33_43 = float4(0, 0, data.w, 0);
-                    unity_ObjectToWorld._14_24_34_44 = float4(data.xyz, 1);
-                    unity_WorldToObject = unity_ObjectToWorld;
-                    unity_WorldToObject._14_24_34 *= -1;
-                    unity_WorldToObject._11_22_33 = 1.0f / unity_WorldToObject._11_22_33;*/
-                #endif
-            }
+            UNITY_INSTANCING_BUFFER_START(Props)
+            UNITY_DEFINE_INSTANCED_PROP(float4, _ColorAdd)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
 
             v2f vert(appdata v) {
@@ -108,7 +81,9 @@ Shader "Unlit/Billboard"
                 UNITY_SETUP_INSTANCE_ID(i);
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv) * _Color;
-                //col = col+ float4(0.5, 0.5, 0.5, col.a);
+                fixed4 colAdd = UNITY_ACCESS_INSTANCED_PROP(Props, _ColorAdd);
+                colAdd.a = col.a * colAdd.a;
+                col += colAdd;
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;

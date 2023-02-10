@@ -26,7 +26,7 @@ namespace GameState
 		private static int _currentTick;
 
 		private static bool _isPaused = false;
-		private const bool TickOnUpdate = true;
+		private static  bool TickOnUpdate = true;
 
 		public static int CurrentTick
 		{

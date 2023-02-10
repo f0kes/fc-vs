@@ -48,9 +48,7 @@ namespace Army
 			_armyInstancer = GetComponent<IArmyInstancer>();
 			_armyMover = GetComponent<IArmyMover>();
 			_inputHandler = GetComponent<IInputHandler>();
-
-			float armyWidth = 16f / 9f;
-			float armyHeight = 9f / 16f;
+			
 			_formation = new PointFormation();
 
 			_armyKDTree = new ArmyKDTree(_units.Units);
