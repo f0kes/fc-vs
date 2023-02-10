@@ -58,6 +58,7 @@ Shader "Unlit/Billboard"
                 
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv.xy;
+                
 
                 // billboard mesh towards camera
                 float3 vpos = mul((float3x3)unity_ObjectToWorld, v.vertex.xyz);
@@ -77,6 +78,7 @@ Shader "Unlit/Billboard"
                 UNITY_SETUP_INSTANCE_ID(i);
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv) * _Color;
+                //col = col+ float4(0.5, 0.5, 0.5, col.a);
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
