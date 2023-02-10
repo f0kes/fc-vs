@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AI.GPUFlock;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ namespace Army.Units
 	{
 		private GPUUnitDraw[] _unitBuffer;
 		public List<Unit> Units{get; private set;} = new List<Unit>();
+		public event Action<Unit> OnUnitAdded;
+		public event Action<Unit> OnUnitRemoved; 
 
 
 		public UnitGroup()
@@ -55,11 +58,13 @@ namespace Army.Units
 		{
 			Units.Add(unit);
 			unit.OnUnitKilled += RemoveUnit;
+			OnUnitAdded?.Invoke(unit);
 
 			void RemoveUnit()
 			{
 				Units.Remove(unit);
 				unit.OnUnitKilled -= RemoveUnit;
+				OnUnitRemoved?.Invoke(unit);
 			}
 		}
 	}

@@ -27,11 +27,13 @@ namespace Army
 		private IInputHandler _inputHandler;
 		private FormationBase _formation;
 		private  ArmyKDTree _armyKDTree;
+		private ArmyAnimator _armyAnimator;
 
 		[SerializeField] private SerializableArmyStats _serializableArmyStats;
 
 		[SerializeField] private int _initialUnits = 6000;
 		[SerializeField] private uint _team = 0;
+		[SerializeField] private UnitAnimationCollection _unitAnimationCollection;
 
 		//perfect density is 15 per square unit
 		[SerializeField] private float _unitDensity = 15f;
@@ -45,9 +47,11 @@ namespace Army
 
 		private void Awake()
 		{
+			_unitAnimationCollection.Initialize();
 			_armyInstancer = GetComponent<IArmyInstancer>();
 			_armyMover = GetComponent<IArmyMover>();
 			_inputHandler = GetComponent<IInputHandler>();
+			
 			
 			_formation = new PointFormation();
 
@@ -76,13 +80,15 @@ namespace Army
 			{
 				SpawnInRandomPosition();
 			}
+			_armyAnimator = new ArmyAnimator(_units);
 		}
 		private void SpawnInRandomPosition()
 		{
 			var position = transform.position;
 			var pos = new Vector2(position.x, position.z);
 			var randomPosition = Random.insideUnitCircle * 10f + pos;
-			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats, _team));
+			var animator = new DefaultUnitAnimator(_unitAnimationCollection);
+			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats, _team, animator));
 		}
 		
 		//TODO: change all updates to ontick

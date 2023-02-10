@@ -5,6 +5,9 @@ Shader "Unlit/Billboard"
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
         _ColorAdd ("ColorAdd", Color) = (0,0,0,0)
+        _SpriteSheetIndex ("SpriteSheetIndex", Float) = 0
+        _SpriteSize ("SpriteSize", Int) = 32
+        _SpriteSheetSize ("SpriteSheetSize", Vector) = (4.0, 7.0, 0, 0)
     }
     SubShader
     {
@@ -49,9 +52,12 @@ Shader "Unlit/Billboard"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float4 _Color;
+            int _SpriteSize;
+            float2 _SpriteSheetSize;
 
             UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _ColorAdd)
+            UNITY_DEFINE_INSTANCED_PROP(float, _SpriteSheetIndex)
             UNITY_INSTANCING_BUFFER_END(Props)
 
 
@@ -63,6 +69,20 @@ Shader "Unlit/Billboard"
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv.xy;
 
+                float2 spriteSize = float2(1.0f / _SpriteSheetSize.x, 1.0f / _SpriteSheetSize.y);
+                uint totalFrames = _SpriteSheetSize.x * _SpriteSheetSize.y;
+
+                uint spriteSheetIndex = (uint)UNITY_ACCESS_INSTANCED_PROP(Props, _SpriteSheetIndex) + _SpriteSheetSize.x;
+                uint spriteSheetIndexX = spriteSheetIndex % (uint)_SpriteSheetSize.x;
+                uint spriteSheetIndexY = spriteSheetIndex / (uint)_SpriteSheetSize.x;
+
+                float2 spriteSheetOffset = float2(spriteSheetIndexX * spriteSize.x, spriteSheetIndexY * spriteSize.y);
+
+                float2 newUV = v.uv.xy * spriteSize;
+                newUV.x += spriteSheetOffset.x;
+                newUV.y += 1 - spriteSheetOffset.y;
+
+                o.uv = newUV;
 
                 // billboard mesh towards camera
                 float3 vpos = mul((float3x3)unity_ObjectToWorld, v.vertex.xyz);

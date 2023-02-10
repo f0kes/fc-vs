@@ -1,6 +1,7 @@
 using System;
 using DefaultNamespace.Enums;
 using GameState;
+using Graphics;
 using Stats;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Army.Units
 	{
 		private ArmyKDTree _armyKDTree;
 		public Action OnUnitKilled;
+		public IUnitAnimator Animator;
 		private Vector2 _target;
 		public StatDict<ArmyStat> Stats{get; private set;}
 		public Vector2 Position{get; set;}
@@ -17,17 +19,19 @@ namespace Army.Units
 		public Vector2 Direction{get; set;}
 		public int TargetIndex{get; set;} = -1;
 		public uint Team{get; set;}
+		public int XScale{get; set;} = 1; 
 		public Vector2 TargetPos{get; set;}
 
 		private float _timeSinceLastAttack = 0;
 
-		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats, uint team)
+		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats, uint team, IUnitAnimator animator)
 		{
 			Health = health;
 			Position = position;
 			_armyKDTree = armyKDTree;
 			Stats = stats;
 			Team = team;
+			Animator = animator;
 			Ticker.OnTick += OnTick;
 		}
 		~Unit()

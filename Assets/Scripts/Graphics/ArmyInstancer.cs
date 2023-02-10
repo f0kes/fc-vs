@@ -18,6 +18,8 @@ namespace Graphics
 		[SerializeField] private Vector3 _offset = new Vector3(0, 1f, 0);
 		private List<MeshData> Batches = new List<MeshData>();
 		private static readonly int Color1 = Shader.PropertyToID("_ColorAdd");
+		private static readonly int SpriteSheetIndex = Shader.PropertyToID("_SpriteSheetIndex");
+		[SerializeField] private int _frameIndex = 0;
 
 		private void RenderBatches()
 		{
@@ -44,6 +46,7 @@ namespace Graphics
 			var batch = new MeshData() { Matrices = new List<Matrix4x4>(), MaterialPropertyBlock = new MaterialPropertyBlock() };
 			Batches.Add(batch);
 			var colors = new List<Vector4>();
+			var frameIndexes = new List<float>();
 			for(var i = 0; i < army.Count; i++)
 			{
 				var scale = army[i].Health / army[i].Stats[ArmyStat.Health];
@@ -52,17 +55,22 @@ namespace Graphics
 				if(Batches[^1].Matrices.Count > 1000)
 				{
 					batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
+					batch.MaterialPropertyBlock.SetFloatArray(SpriteSheetIndex, frameIndexes);
+					frameIndexes.Clear();
 					colors.Clear();
 					batch = new MeshData() { Matrices = new List<Matrix4x4>(), MaterialPropertyBlock = new MaterialPropertyBlock() };
 					Batches.Add(batch);
 				}
-				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, Vector3.one)); ;
-				
-				colors.Add(new Vector4(1-scale, 0, 0, 1-scale));
+				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, new Vector3(army[i].XScale, 1, 1)));
+
+				colors.Add(new Vector4(1 - scale, 0, 0, 1 - scale));
+				frameIndexes.Add(army[i].Animator.CurrentFrameIndex);
 			}
 			batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
-			Debug.Log(colors[10]);
+			batch.MaterialPropertyBlock.SetFloatArray(SpriteSheetIndex, frameIndexes);
+			frameIndexes.Clear();
 			colors.Clear();
+			//TODO: REFACTOR
 		}
 
 	}
