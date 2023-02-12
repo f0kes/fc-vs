@@ -39,19 +39,23 @@ namespace Graphics
 		{
 			UpdatePositions(army);
 		}
-
+		//TODO: Change lists to arrays
+		//TODO: Change to DrawMeshInstancedProcedural or DrawMeshInstancedIndirect
+		//TODO: All math should be done in the compute shader
 		public void UpdatePositions(List<Unit> army)
 		{
+			if(army.Count == 0) return;
 			Batches.Clear();
 			var batch = new MeshData() { Matrices = new List<Matrix4x4>(), MaterialPropertyBlock = new MaterialPropertyBlock() };
 			Batches.Add(batch);
 			var colors = new List<Vector4>();
 			var frameIndexes = new List<float>();
+			var healthStat = army[0].Stats[ArmyStat.Health];
 			for(var i = 0; i < army.Count; i++)
 			{
-				var scale = army[i].Health / army[i].Stats[ArmyStat.Health];
+				var scale = army[i].Health / healthStat;
 
-				Vector3 position = new Vector3(army[i].Position.x, 0, army[i].Position.y);
+				var position = new Vector3(army[i].Position.x, 0, army[i].Position.y);
 				if(Batches[^1].Matrices.Count > 1000)
 				{
 					batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
@@ -63,7 +67,7 @@ namespace Graphics
 				}
 				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, new Vector3(army[i].XScale, 1, 1)));
 
-				colors.Add(new Vector4(1, 0, 0, 1 - scale));
+				colors.Add(new Vector4(1, 0, 0, (1 - scale)*0.5f));
 				frameIndexes.Add(army[i].Animator.CurrentFrameIndex);
 			}
 			batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);

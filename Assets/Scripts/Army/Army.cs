@@ -37,7 +37,6 @@ namespace Army
 
 		//perfect density is 15 per square unit
 		[SerializeField] private float _unitDensity = 15f;
-		public int Team;
 
 		private readonly UnitGroup _units = new UnitGroup();
 		public UnitGroup Units => _units;
@@ -55,7 +54,7 @@ namespace Army
 			
 			_formation = new PointFormation();
 
-			_armyKDTree = new ArmyKDTree(_units.Units);
+			_armyKDTree = new ArmyKDTree(_units);
 			//Teams.AddArmyToTeam(this);
 			Stats = _serializableArmyStats.GetStats();
 		}
@@ -96,7 +95,7 @@ namespace Army
 		{
 			_armyInstancer.UpdatePositions(_units.Units);
 			var positions = _units.GetPositions().ToList();
-			_armyKDTree.Build(positions);
+			
 		}
 
 	}

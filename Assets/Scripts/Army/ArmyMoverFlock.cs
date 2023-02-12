@@ -12,10 +12,11 @@ using UnityEngine;
 namespace Army
 {
 
-	public class ArmyMoverFlock : MonoBehaviour, IArmyMover
+	public class ArmyMoverFlock : MonoBehaviour, IArmyMover, ITickable
 	{
 		[SerializeField] private Transform _targetTransform;
 		private Tracked<Vector2> _target = new Tracked<Vector2>(Vector2.zero);
+		private Vector3 _initialTargetPos;
 
 		private Vector2 _center;
 		private Vector2 _offset;
@@ -26,10 +27,11 @@ namespace Army
 		public void Init(ArmyMoverArgs args)
 		{
 			_args = args;
-			Ticker.OnTick += OnTick;
+			Ticker.AddTickable(this);
+			_initialTargetPos = _targetTransform.position;
 		}
 
-		private void OnTick(Ticker.OnTickEventArgs obj)
+		public void OnTick(Ticker.OnTickEventArgs obj)
 		{
 			foreach(var unit in _args.Units.Units)
 			{
@@ -39,7 +41,7 @@ namespace Army
 		public void SetTarget(Vector2 dir)
 		{
 			SetTargetMove(dir);
-			_targetTransform.position = new Vector3(_target.Value.x, 1, _target.Value.y);
+			_targetTransform.position = new Vector3(_target.Value.x, 0, _target.Value.y) + _initialTargetPos;
 		}
 		private void SetTargetMove(Vector2 dir)
 		{

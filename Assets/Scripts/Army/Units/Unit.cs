@@ -8,11 +8,12 @@ using UnityEngine;
 
 namespace Army.Units
 {
-	public class Unit
+	public class Unit : ITickable
 	{
 		public EventHandler<UnitKilledEventArgs> OnUnitKilled;
 		public EventHandler<UnitDamagedEventArgs> OnUnitDamaged;
 		public EventHandler<UnitAttackedEventArgs> OnUnitAttackPerformed;
+
 
 		private ArmyKDTree _armyKDTree;
 
@@ -28,6 +29,7 @@ namespace Army.Units
 		public Vector2 TargetPos{get; set;}
 
 		private float _timeSinceLastAttack = 0;
+		private Vector2 _pushForce = Vector2.zero;
 
 		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats, uint team, IUnitAnimator animator)
 		{
@@ -37,24 +39,26 @@ namespace Army.Units
 			Stats = stats;
 			Team = team;
 			Animator = animator;
-			Ticker.OnTick += OnTick;
+			Ticker.AddTickable(this);
 		}
 		~Unit()
 		{
-			Ticker.OnTick -= OnTick;
+			//Ticker.OnTick -= OnTick;
 		}
-
-		private void OnTick(Ticker.OnTickEventArgs obj)
+		//TODO: to compute shader
+		public void OnTick(Ticker.OnTickEventArgs obj)
 		{
 			_timeSinceLastAttack += obj.DeltaTime;
-			if(_target != Vector2.zero && (_target - Position).sqrMagnitude > 0.01f)
+			if(_pushForce.sqrMagnitude > 0.01f)
 			{
-				MoveWithDir(_target - Position);
+				MoveWithDir(_pushForce);
+				_pushForce *= 0.9f;
 			}
 			if(CanAttack())
 			{
 				var target = AllUnits.Units[TargetIndex];
 				target.Damage(Stats[ArmyStat.Damage]);
+				target.Push((target.Position - Position).normalized * Stats[ArmyStat.Damage] * 2f);
 				OnUnitAttackPerformed?.Invoke(this, new UnitAttackedEventArgs() { Attacker = this, Target = target });
 				//target.Position += (target.Position - Position).normalized * Stats[ArmyStat.Damage] * 0.1f;
 				_timeSinceLastAttack = 0;
@@ -64,6 +68,7 @@ namespace Army.Units
 				Kill();
 			}
 		}
+		//TODO: to compute shader
 		private bool CanAttack()
 		{
 			return (_timeSinceLastAttack > 1 / Stats[ArmyStat.AttackSpeed]) && TargetIndex != -1;
@@ -73,11 +78,15 @@ namespace Army.Units
 			Health -= damage;
 			OnUnitDamaged?.Invoke(this, new UnitDamagedEventArgs() { Target = this, Damage = damage });
 		}
+		public void Push(Vector2 dir)
+		{
+			_pushForce += dir;
+		}
 
 		public void Kill()
 		{
 			OnUnitKilled?.Invoke(this, new UnitKilledEventArgs() { Target = this });
-			Ticker.OnTick -= OnTick;
+			Ticker.RemoveTickable(this);
 		}
 
 		public void MoveWithDir(Vector2 offset)

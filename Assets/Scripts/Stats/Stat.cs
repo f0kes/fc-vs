@@ -39,7 +39,7 @@ namespace Stats
 				{
 					mod.ApplyMod(ref result, baseValue);
 				}
-
+				_lastUpdateTick = Ticker.CurrentTick;
 				_lastValue = result;
 				return _lastValue;
 			}

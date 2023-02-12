@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ namespace GameState
 {
 	public static class Ticker
 	{
+		
+		 
 		public class OnTickEventArgs : EventArgs
 		{
 			public int Tick;
@@ -27,17 +30,18 @@ namespace GameState
 
 		private static bool _isPaused = false;
 		private static  bool TickOnUpdate = true;
+		
+		private static List<ITickable> _tickables = new List<ITickable>();
+		private static List<ITickable> _tickablesToAdd = new List<ITickable>();
+		private static List<ITickable> _tickablesToRemove = new List<ITickable>();
+
 
 		public static int CurrentTick
 		{
 			get => _currentTick;
 			set => _currentTick = value;
 		}
-
-		public static event Action<OnTickEventArgs> OnTickStart;
-		public static event Action<OnTickEventArgs> OnTick;
-		public static event Action<OnTickEventArgs> OnTickEnd;
-
+		
 
 		public static async void InvokeInTime(Action toInvoke, float time)
 		{
@@ -87,11 +91,26 @@ namespace GameState
 		public static void Tick(bool simulating = false)
 		{
 			_currentTick++;
-			OnTickStart?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
-			OnTick?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
-			OnTickEnd?.Invoke(new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick });
+			var args = new OnTickEventArgs { Tick = _currentTick, Simulating = simulating, DeltaTime = _timeSinceLastTick };
+			_tickables.AddRange(_tickablesToAdd);
+			_tickablesToRemove.ForEach(tickable => _tickables.Remove(tickable));
+			_tickablesToAdd.Clear();
+			_tickablesToRemove.Clear();
+			foreach(var tickable in _tickables)
+			{
+				tickable.OnTickStart(args);
+				tickable.OnTick(args);
+				tickable.OnTickEnd(args);
+			}
 		}
-
+		public static void AddTickable(ITickable tickable)
+		{
+			_tickablesToAdd.Add(tickable);
+		}
+		public static void RemoveTickable(ITickable tickable)
+		{
+			_tickablesToRemove.Add(tickable);
+		}
 
 		public static float TicksToSeconds(int ticks)
 		{

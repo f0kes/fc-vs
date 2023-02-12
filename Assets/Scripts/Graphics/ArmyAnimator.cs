@@ -7,13 +7,13 @@ using UnityEngine;
 
 namespace Graphics
 {
-	public class ArmyAnimator
+	public class ArmyAnimator: ITickable
 	{
 		private UnitGroup _units;
 		public ArmyAnimator(UnitGroup units)
 		{
 			_units = units;
-			Ticker.OnTick += OnTick;
+			Ticker.AddTickable(this);
 			_units.OnUnitAdded += OnUnitAdded;
 			_units.OnUnitRemoved += OnUnitRemoved;
 			foreach(var unit in _units.Units)
@@ -23,7 +23,7 @@ namespace Graphics
 		}
 		~ArmyAnimator()
 		{
-			Ticker.OnTick -= OnTick;
+			Ticker.RemoveTickable(this);
 			_units.OnUnitAdded -= OnUnitAdded;
 			_units.OnUnitRemoved -= OnUnitRemoved;
 			foreach(var unit in _units.Units)
@@ -53,17 +53,18 @@ namespace Graphics
 
 		private void OnUnitAttacked(object sender, UnitAttackedEventArgs e)
 		{
-			e.Attacker.Animator.SetAnimation(UnitAnimationType.Attack, time: 0.7f);
+			e.Attacker.Animator.SetAnimation(UnitAnimationType.Attack, loop: false, time: 0.7f);
 		}
 
 		private void OnUnitDamaged(object sender, UnitDamagedEventArgs e)
 		{
-			e.Target.Animator.SetAnimation(UnitAnimationType.OnHit, time: 0.7f);
+			e.Target.Animator.SetAnimation(UnitAnimationType.OnHit, loop: false, time: 0.7f);
 		}
 
 
 
-		private void OnTick(Ticker.OnTickEventArgs obj)
+		//TODO: to compute shader
+		public void OnTick(Ticker.OnTickEventArgs obj)
 		{
 			foreach(var unit in _units.Units)
 			{

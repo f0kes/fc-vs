@@ -10,22 +10,24 @@ namespace Army
 {
 	public class ArmyKDTree
 	{
-		private List<Unit> _units;
+		private UnitGroup _units;
 		private KDTree _kdTree = new KDTree();
 		private KDQuery _kdQuery = new KDQuery();
-		public ArmyKDTree(List<Unit> units)
+		private int _lastBuildTick = 0;
+		public ArmyKDTree(UnitGroup units)
 		{
 			_units = units;
 			//TODO:build here
 		}
 		public List<Unit> GetNearestUnits(Vector2 position, float radius)
 		{
+			RebuildIfNeeded();
 			var result = new List<int>();
 			var nearestUnits = new List<Unit>();
 			_kdQuery.KNearest(_kdTree, position, 10, result);
 			foreach(var index in result)
 			{
-				nearestUnits.Add(_units[index]);
+				nearestUnits.Add(_units.Units[index]);
 			}
 			return nearestUnits;
 		}
@@ -35,19 +37,28 @@ namespace Army
 		}
 		public List<Unit> GetNearestUnitsRadius(Vector2 position, float radius)
 		{
+			RebuildIfNeeded();
 			var result = new List<int>();
 			var nearestUnits = new List<Unit>();
 
 			_kdQuery.Radius(_kdTree, position, radius, result);
 			foreach(var index in result)
 			{
-				nearestUnits.Add(_units[index]);
+				nearestUnits.Add(_units.Units[index]);
 			}
 			return nearestUnits;
 		}
-
-		public void Build(List<Vector2> positions)
+		private void RebuildIfNeeded()
 		{
+			if(Ticker.CurrentTick > _lastBuildTick )
+			{
+				Build(_units.GetPositions());
+			}
+		}
+
+		private void Build(Vector2[] positions)
+		{
+			_lastBuildTick = Ticker.CurrentTick;
 			_kdTree.Build(positions);
 		}
 	}

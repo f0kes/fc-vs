@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Graphics
 {
-	public class DefaultUnitAnimator : IUnitAnimator
+	public class DefaultUnitAnimator : IUnitAnimator,ITickable
 	{
 		private UnitAnimationCollection _animationCollection;
 		private UnitAnimationType _currentAnimationType = UnitAnimationType.Null;
@@ -18,14 +18,14 @@ namespace Graphics
 		public DefaultUnitAnimator(UnitAnimationCollection animationCollection)
 		{
 			_animationCollection = animationCollection;
-			Ticker.OnTick += OnTick;
+			Ticker.AddTickable(this);
 		}
 		~DefaultUnitAnimator()
 		{
-			Ticker.OnTick -= OnTick;
+			Ticker.RemoveTickable(this);
 		}
 
-		private void OnTick(Ticker.OnTickEventArgs obj)
+		public void OnTick(Ticker.OnTickEventArgs obj)
 		{
 			if(_animationFinished)
 				return;

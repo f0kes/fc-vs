@@ -17,7 +17,7 @@ namespace AI.GPUFlock
 		public uint Team;
 		public int TargetedUnit;
 	}
-	public class FlocksHandler : MonoBehaviour
+	public class FlocksHandler : MonoBehaviour, ITickable
 	{
 		[SerializeField] private ComputeShader _computeFlock;
 		const int THREADS = 256;
@@ -39,12 +39,12 @@ namespace AI.GPUFlock
 				Destroy(gameObject);
 				return;
 			}
-			Ticker.OnTick += OnTick;
+			Ticker.AddTickable(this);
 			_kernel = _computeFlock.FindKernel("CSMain");
 			_stride = (sizeof(float) * 2) * 3 + sizeof(float) + sizeof(uint) + sizeof(int); // 3 vectors2 + 1 float + 1 uint
 		}
 
-		private void OnTick(Ticker.OnTickEventArgs tick)
+		public void OnTick(Ticker.OnTickEventArgs tick)
 		{
 			UpdateBuffer();
 			Dispatch(tick.DeltaTime);
