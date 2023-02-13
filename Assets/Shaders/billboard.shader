@@ -4,6 +4,8 @@ Shader "Unlit/Billboard"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
+        _ColorSecondary ("ColorSecondary", Color) = (1,1,1,1)
+        _SecondaryColorLookup ("SecondaryColorLookup", Color) = (0,0,1,1)
         _ColorAdd ("ColorAdd", Color) = (0,0,0,0)
         _SpriteSheetIndex ("SpriteSheetIndex", Float) = 0
         _SpriteSize ("SpriteSize", Int) = 32
@@ -52,6 +54,8 @@ Shader "Unlit/Billboard"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float4 _Color;
+            float4 _ColorSecondary;
+            float4 _SecondaryColorLookup;
             int _SpriteSize;
             float2 _SpriteSheetSize;
 
@@ -66,7 +70,7 @@ Shader "Unlit/Billboard"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-                o.pos = UnityObjectToClipPos(v.vertex);
+                float4 screen_pos = ComputeScreenPos(v.vertex);
                 o.uv = v.uv.xy;
 
                 float2 spriteSize = float2(1.0f / _SpriteSheetSize.x, 1.0f / _SpriteSheetSize.y);
@@ -91,6 +95,7 @@ Shader "Unlit/Billboard"
                 float4 viewPos = mul(UNITY_MATRIX_V, worldCoord) + float4(vpos, 0);
                 float4 outPos = mul(UNITY_MATRIX_P, viewPos);
 
+
                 o.pos = outPos;
 
                 UNITY_TRANSFER_FOG(o, o.vertex);
@@ -99,16 +104,27 @@ Shader "Unlit/Billboard"
 
             fixed4 frag(v2f i) : SV_Target {
                 UNITY_SETUP_INSTANCE_ID(i);
-                // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv) * _Color;
+
+                fixed4 secondaryLookup = _SecondaryColorLookup;
+                fixed4 colThis = tex2D(_MainTex, i.uv);
+                //if  colthis is blue, use secondary color
+                fixed4 col = colThis;
+                if (all(colThis == secondaryLookup))
+                {
+                    col = _ColorSecondary;
+                }
+                else
+                {
+                    col *= _Color;
+                }
                 fixed4 colAdd = UNITY_ACCESS_INSTANCED_PROP(Props, _ColorAdd);
                 //colAdd.xyz *= colAdd.a;
                 col.x = col.x * (1 - colAdd.a) + colAdd.x * colAdd.a;
                 col.y = col.y * (1 - colAdd.a) + colAdd.y * colAdd.a;
                 col.z = col.z * (1 - colAdd.a) + colAdd.z * colAdd.a;
                 colAdd.a = col.a;
-                
-                
+
+
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;

@@ -70,10 +70,10 @@ namespace Graphics
 			{
 				if(unit.Direction.sqrMagnitude > 0.01f)
 				{
-					if(unit.Direction.x > 0)
-						unit.XScale = 1;
-					else
-						unit.XScale = -1;
+					// if(unit.Direction.x > 0)
+					// 	unit.XScale = 1;
+					// else
+					// 	unit.XScale = -1;
 					unit.Animator.SetAnimation(UnitAnimationType.Run, time: 0.7f);
 				}
 				else

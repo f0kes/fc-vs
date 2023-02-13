@@ -365,7 +365,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 200776799}
-  _amount: 1
+  _amount: 10000
   _radius: 10
   _bounds: {x: 10, y: 10}
   _visualEffect: {fileID: 200776801}

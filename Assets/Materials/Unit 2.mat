@@ -112,9 +112,11 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0.5283019, g: 0.13651158, b: 0.12210752, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorAdd: {r: 1, g: 1, b: 1, a: 0}
+    - _ColorSecondary: {r: 0.5849056, g: 0.048270095, b: 0.0027589954, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SecondaryColorLookup: {r: 0, g: 0, b: 1, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _SpriteSheetSize: {r: 4, g: 7, b: 0, a: 0}
   m_BuildTextureStacks: []

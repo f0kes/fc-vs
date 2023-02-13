@@ -12,9 +12,26 @@ public class GameObjectSpawner : MonoBehaviour
 	[SerializeField] private Vector2 _bounds;
 	[SerializeField] private VisualEffect _visualEffect;
 	private GraphicsBuffer _buffer;
+	private Vector2[] _positions;
 	private float _time;
 	void Start()
 	{
+		var positions = new Vector2[_amount];
+		for(int i = 0; i < _amount; i++)
+		{
+			// ReSharper disable once PossibleLossOfFraction
+			positions[i] = new Vector2(i % (int)_bounds.x, i / (int)_bounds.x);
+		}
+	}
+	private Vector2[] GetPositions()
+	{
+		var positions = new Vector2[_amount];
+		for(int i = 0; i < _amount; i++)
+		{
+			int columns = (int)_bounds.x;
+			positions[i] = new Vector2(i % columns, i / columns);
+		}
+		return positions;
 	}
 	void OnDestroy()
 	{
@@ -25,18 +42,12 @@ public class GameObjectSpawner : MonoBehaviour
 	void Update()
 	{
 		_buffer?.Dispose();
-		_time += Time.deltaTime;
-		if(_time > 1)
-		{
-			Vector2[] positions = new Vector2[_amount];
-			for(int i = 0; i < _amount; i++)
-			{
-				positions[i] = new Vector2(Random.Range(-_bounds.x, _bounds.x), Random.Range(-_bounds.y, _bounds.y));
-			}
-			_buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _amount, 2 * sizeof(float));
-			_buffer.SetData(positions);
-			_time = 0;
-		}
+
+
+		var positions = GetPositions();
+		_buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _amount, 2 * sizeof(float));
+		_buffer.SetData(positions);
+		_time = 0;
 
 
 		_visualEffect.SetGraphicsBuffer("_Positions", _buffer);
