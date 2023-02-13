@@ -68,7 +68,7 @@ namespace Army
 			};
 			_armyMover.Init(armyMoverArgs);
 			_inputHandler.OnMove += _armyMover.SetTarget;
-			_inputHandler.OnClick += _armyMover.MoveInRadius;
+			//_inputHandler.OnClick += _armyMover.MoveInRadius;
 			_armyInstancer.CreateInstances(_units.Units);
 		}
 
