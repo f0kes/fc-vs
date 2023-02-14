@@ -79,7 +79,7 @@ public class CameraController : MonoBehaviour
 			newRotation *= Quaternion.Euler(Vector3.up * Input.GetAxis("Mouse X"));
 		}
 
-		if (Input.GetMouseButton(2))
+		if (Input.GetMouseButton(0))//Input.GetMouseButton(2)
 		{
 			//Camera movement on mouse button hold
 			Cursor.lockState = CursorLockMode.Locked;
@@ -87,7 +87,9 @@ public class CameraController : MonoBehaviour
 
 			newPosition += transform.right * -Input.GetAxis("Mouse X") * _camMovementSpeed;
 			newPosition += transform.forward * -Input.GetAxis("Mouse Y") * _camMovementSpeed;
+			
 		}
+		
 	}
 
 	private void Zoom()

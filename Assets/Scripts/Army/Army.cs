@@ -67,7 +67,7 @@ namespace Army
 				Team = _team
 			};
 			_armyMover.Init(armyMoverArgs);
-			_inputHandler.OnMove += _armyMover.SetTarget;
+			_inputHandler.InputEvents.OnMove += _armyMover.SetTarget;
 			//_inputHandler.OnClick += _armyMover.MoveInRadius;
 			_armyInstancer.CreateInstances(_units.Units);
 		}

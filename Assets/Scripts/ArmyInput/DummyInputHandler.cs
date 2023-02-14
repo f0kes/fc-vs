@@ -6,8 +6,7 @@ namespace ArmyInput
 {
     public class DummyInputHandler : MonoBehaviour, IInputHandler
     {
-        public event Action<Vector2> OnMove;
-        public event Action<Vector2> MouseWorldPosition;
-        public event Action<Vector2> OnClick;
+
+        public InputEvents InputEvents{get;} = new InputEvents();
     }
 }

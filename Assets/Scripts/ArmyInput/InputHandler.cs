@@ -7,16 +7,14 @@ namespace ArmyInput
 	{
 		[SerializeField] private Camera _camera;
 
-		public event Action<Vector2> OnMove;
-		public event Action<Vector2> MouseWorldPosition;
-		public event Action<Vector2> OnClick;
+		public InputEvents InputEvents{get;} = new InputEvents();
 
 		private void Update()
 		{
 			var direction = Direction();
 
 			ProcessMouse();
-			OnMove?.Invoke(direction);
+			InputEvents.OnMove?.Invoke(direction);
 		}
 		private void ProcessMouse()
 		{
@@ -24,11 +22,20 @@ namespace ArmyInput
 			var ray = _camera.ScreenPointToRay(Input.mousePosition);
 			if(!Physics.Raycast(ray, out var hit)) return;
 			var mouseWorldPosition2D = new Vector2(hit.point.x, hit.point.z);
-			MouseWorldPosition?.Invoke(mouseWorldPosition2D);
+			InputEvents.MouseWorldPosition?.Invoke(mouseWorldPosition2D);
 			if(Input.GetMouseButton(0))
 			{
-				OnClick?.Invoke(mouseWorldPosition2D);
+				InputEvents.OnClick?.Invoke(mouseWorldPosition2D);
 			}
+			if(Input.GetMouseButton(1))
+			{
+				InputEvents.OnRightClick?.Invoke(mouseWorldPosition2D);
+			}
+			if(Input.GetMouseButton(2))
+			{
+				InputEvents.OnMiddleClick?.Invoke(mouseWorldPosition2D);
+			}
+			InputEvents.OnScroll?.Invoke(Input.mouseScrollDelta.y);
 		}
 		private Vector2 Direction()
 		{
@@ -61,7 +68,7 @@ namespace ArmyInput
 			}
 			//rotate with camera, camera is top down looking at the ground
 			var cameraDirection = _camera.transform.TransformDirection(new Vector3(direction.x, 0, direction.y));
-			direction = new Vector2(cameraDirection.x, cameraDirection.z);
+			direction = new Vector2(cameraDirection.x, cameraDirection.z).normalized;
 			return direction;
 		}
 	}

@@ -45,7 +45,7 @@ namespace Army
 		}
 		private void SetTargetMove(Vector2 dir)
 		{
-			Vector2 offset = dir * _args.Stats[ArmyStat.Speed] * Time.deltaTime * 1.5f;
+			Vector2 offset = dir * _args.Stats[ArmyStat.Speed] * Time.deltaTime;
 			_target.Set(_target.Value + offset);
 		}
 
