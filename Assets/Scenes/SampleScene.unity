@@ -3487,7 +3487,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 6fbc7cf45f1b3fb4aa55eb38ecfc343a, type: 2}
     - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.size
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[4].Name
@@ -3502,6 +3502,10 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
+      propertyPath: _serializableArmyStats.enumeratedStats.Array.data[7].Name
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[4].Value.baseValue
       value: 100
       objectReference: {fileID: 0}
@@ -3511,6 +3515,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[6].Value.baseValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 348724032350109963, guid: 415c3de84bca37c45979ba47e2152912, type: 3}
+      propertyPath: _serializableArmyStats.enumeratedStats.Array.data[7].Value.baseValue
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -3710,7 +3718,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 6fbc7cf45f1b3fb4aa55eb38ecfc343a, type: 2}
     - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.size
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[4].Name
@@ -3725,6 +3733,10 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
+      propertyPath: _serializableArmyStats.enumeratedStats.Array.data[7].Name
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[4].Value.baseValue
       value: 100
       objectReference: {fileID: 0}
@@ -3734,6 +3746,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
       propertyPath: _serializableArmyStats.enumeratedStats.Array.data[6].Value.baseValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 13447819055750959, guid: 66678d1a6c4472440b6827a66ff653dd, type: 3}
+      propertyPath: _serializableArmyStats.enumeratedStats.Array.data[7].Value.baseValue
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

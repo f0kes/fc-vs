@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Army;
+using Army.Units;
 using DefaultNamespace.Enums;
 using GameState;
 using UnityEngine;
@@ -13,20 +14,38 @@ namespace AI.GPUFlock
 		public Vector2 Position;
 		public Vector2 Direction;
 		public Vector2 TargetPos;
-		public float Noise_Offset;
-		public uint Team;
+		public uint GroupId;
 		public int TargetedUnit;
+		
+		public static int GetStride()
+		{
+			return (sizeof(float) * 2) * 3 + sizeof(uint) + sizeof(int);
+		}
+	}
+	public struct GPUUnitGroup
+	{
+		public uint Team;
+		public float Speed;
+		public float AttackRange;
+		
+		public static int GetStride()
+		{
+			return sizeof(uint) + sizeof(float) * 2;
+		}
 	}
 	public class FlocksHandler : MonoBehaviour, ITickable
 	{
 		[SerializeField] private ComputeShader _computeFlock;
 		const int THREADS = 256;
-		public static readonly List<IUnitGroupSerializer> Serializers = new List<IUnitGroupSerializer>();
+		public static  AllUnits Serializer;
 		private int[] _bufferSizes;
 		private int _kernel;
 		private int _stride;
 		private GPUUnitDraw[] _units;
+		private GPUUnitGroup[] _groups;
+		
 		private ComputeBuffer _unitsBuffer;
+		private ComputeBuffer _groupsBuffer;
 		public static FlocksHandler Instance{get; private set;}
 		public List<Army.Units.Unit> Units{get; private set;} = new List<Army.Units.Unit>();
 
@@ -41,84 +60,50 @@ namespace AI.GPUFlock
 			}
 			Ticker.AddTickable(this);
 			_kernel = _computeFlock.FindKernel("CSMain");
-			_stride = (sizeof(float) * 2) * 3 + sizeof(float) + sizeof(uint) + sizeof(int); // 3 vectors2 + 1 float + 1 uint
+			_stride = GPUUnitDraw.GetStride(); // 3 vectors2 + 1 float + 1 uint
 		}
 
 		public void OnTick(Ticker.OnTickEventArgs tick)
 		{
-			UpdateBuffer();
+			UpdateBuffers();
 			Dispatch(tick.DeltaTime);
 			UpdateHandlers();
 			_unitsBuffer.Release();
+			_groupsBuffer.Release();
 		}
 
-		private void UpdateBuffer()
+		private void UpdateBuffers()
 		{
-			//cache all buffers
-			var flockBuffers = new GPUUnitDraw[Serializers.Count][];
-			_bufferSizes = new int[Serializers.Count];
-
-			for(var i = 0; i < Serializers.Count; i++)
-			{
-				flockBuffers[i] = Serializers[i].Serialize();
-			}
-
-			//get all buffer sizes sum
-			var bufferSize = 0;
-			for(var i = 0; i < flockBuffers.Length; i++)
-			{
-				var length = flockBuffers[i].Length;
-				_bufferSizes[i] = length;
-				bufferSize += length;
-			}
-
-			//create new buffer
-			_units = new GPUUnitDraw[bufferSize];
-			_unitsBuffer = new ComputeBuffer(bufferSize, _stride);
-
-			int pointer = 0;
-			//concat all buffers
-			foreach(var buffer in flockBuffers)
-			{
-				buffer.CopyTo(_units, pointer);
-				pointer += buffer.Length;
-			}
+			_units = Serializer.GetUnits();
+			_unitsBuffer = new ComputeBuffer(_units.Length, _stride);
 			_unitsBuffer.SetData(_units);
+			
+			_groups = Serializer.GetGroups();
+			_groupsBuffer = new ComputeBuffer(_groups.Length, GPUUnitGroup.GetStride());
+			_groupsBuffer.SetData(_groups);
 		}
 		private void Dispatch(float tickTime)
 		{
-			_computeFlock.SetFloat("DeltaTime", tickTime);
-			_computeFlock.SetFloat("RotationSpeed", 1);
-			_computeFlock.SetFloat("BoidSpeed", 10);
-			_computeFlock.SetFloat("BoidSpeedVariation", 0.1f);
+			_computeFlock.SetFloat("delta_time", tickTime);
+			//_computeFlock.SetFloat("RotationSpeed", 1);
+			//_computeFlock.SetFloat("BoidSpeed", 10);
+			//_computeFlock.SetFloat("BoidSpeedVariation", 0.1f);
 			//_computeFlock.SetVector("TargetPosition", _target.Value);
-			_computeFlock.SetFloat("NeighbourDistance", 1);
-			_computeFlock.SetInt("BoidsCount", _units.Length);
-			_computeFlock.SetBuffer(_kernel, "boidBuffer", _unitsBuffer);
+			_computeFlock.SetFloat("neighbour_distance", 1);
+			_computeFlock.SetInt("boids_count", _units.Length);
+			_computeFlock.SetBuffer(_kernel, "boid_buffer", _unitsBuffer);
+			_computeFlock.SetBuffer(_kernel, "group_params_buffer", _groupsBuffer);
 
 			_computeFlock.Dispatch(_kernel, _units.Length / THREADS + 1, 1, 1);
 		}
 		private void UpdateHandlers()
 		{
-			var pointer = 0;
 			_unitsBuffer.GetData(_units);
-			for(int i = 0; i < Serializers.Count; i++)
-			{
-				var length = _bufferSizes[i];
-				var handler = Serializers[i];
-				var buffer = new GPUUnitDraw[length];
-				Array.Copy(_units, pointer, buffer, 0, length);
-				handler.Deserialize(buffer);
-				pointer += length;
-			}
+			Serializer.DeserializeUnits(_units);
 		}
-		public void AddUnitBufferHandler(IUnitGroupSerializer handler)
+		public void SetSerializer(AllUnits serializer)
 		{
-			Serializers.Add(handler);
-		}
-		public void RemoveUnitBufferHandler(IUnitGroupSerializer handler)
-		{
-			Serializers.Remove(handler);
+			Serializer = serializer;
 		}
 	}
 }

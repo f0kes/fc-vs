@@ -22,11 +22,13 @@ namespace Army
 	[RequireComponent(typeof(IInputHandler))]
 	public class Army : MonoBehaviour
 	{
+		public static readonly ArmyKDTree KDTree = new ArmyKDTree();
+		
 		private IArmyInstancer _armyInstancer;
 		private IArmyMover _armyMover;
 		private IInputHandler _inputHandler;
 		private FormationBase _formation;
-		private  ArmyKDTree _armyKDTree;
+		
 		private ArmyAnimator _armyAnimator;
 
 		[SerializeField] private SerializableArmyStats _serializableArmyStats;
@@ -38,7 +40,7 @@ namespace Army
 		//perfect density is 15 per square unit
 		[SerializeField] private float _unitDensity = 15f;
 
-		private readonly UnitGroup _units = new UnitGroup();
+		private UnitGroup _units;
 		public UnitGroup Units => _units;
 		public StatDict<ArmyStat> Stats = new StatDict<ArmyStat>();
 
@@ -46,23 +48,26 @@ namespace Army
 
 		private void Awake()
 		{
+			Stats = _serializableArmyStats.GetStats();
+			_units = new UnitGroup(Stats, _team);
+			KDTree.AddUnitGroup(_units);
+
 			_unitAnimationCollection.Initialize();
 			_armyInstancer = GetComponent<IArmyInstancer>();
 			_armyMover = GetComponent<IArmyMover>();
 			_inputHandler = GetComponent<IInputHandler>();
-			
-			
+
+
 			_formation = new PointFormation();
 
-			_armyKDTree = new ArmyKDTree(_units);
+			
 			//Teams.AddArmyToTeam(this);
-			Stats = _serializableArmyStats.GetStats();
 		}
 
 		private void Start()
 		{
 			InitialiseArmy();
-			var armyMoverArgs = new ArmyMoverArgs(_units, Stats, _armyKDTree, Helpers.CalculateArmyRange(_initialUnits, _unitDensity), _formation)
+			var armyMoverArgs = new ArmyMoverArgs(_units, Stats, KDTree, Helpers.CalculateArmyRange(_initialUnits, _unitDensity), _formation)
 			{
 				Team = _team
 			};
@@ -75,7 +80,7 @@ namespace Army
 
 		private void InitialiseArmy()
 		{
-			for (int i = 0; i < _initialUnits; i++)
+			for(int i = 0; i < _initialUnits; i++)
 			{
 				SpawnInRandomPosition();
 			}
@@ -87,15 +92,14 @@ namespace Army
 			var pos = new Vector2(position.x, position.z);
 			var randomPosition = Random.insideUnitCircle * 10f + pos;
 			var animator = new DefaultUnitAnimator(_unitAnimationCollection);
-			Units.AddUnit(new Unit(100, randomPosition, _armyKDTree, Stats, _team, animator));
+			Units.AddUnit(new Unit(100, randomPosition, Stats, animator));
 		}
-		
+
 		//TODO: change all updates to ontick
 		private void Update()
 		{
 			_armyInstancer.UpdatePositions(_units.Units);
 			var positions = _units.GetPositions().ToList();
-			
 		}
 
 	}

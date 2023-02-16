@@ -25,6 +25,7 @@ float2 norm(float2 v) {
 	float l = length(v);
 	return (l < 1) ? v : v / l;
 }
+
 float2 norm_no_zero(float2 v) {
 	float l = length(v);
 	return (l < 0.0001) ? float2(1.0, 0.0) : v / l;
@@ -35,91 +36,100 @@ struct Boid
 	float2 position;
 	float2 direction;
 	float2 target_pos;
-	float noise_offset;
-	uint team;
+	uint group_id;
 	int targeted_unit;
 };
 
-RWStructuredBuffer<Boid> boidBuffer;
+struct GroupParams
+{
+	uint team;
+	float speed;
+	float attack_radius;
+};
+
+RWStructuredBuffer<Boid> boid_buffer;
+StructuredBuffer<GroupParams> group_params_buffer;
 
 CBUFFER_START(Params)
-float DeltaTime;
-float RotationSpeed;
-float BoidSpeed;
-float BoidSpeedVariation;
-float NeighbourDistance;
-uint BoidsCount;
+float delta_time;
+float neighbour_distance;
+uint boids_count;
 CBUFFER_END
 
 [numthreads(THREADS,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID) {
-	uint instanceId = id.x;
-	Boid boid = boidBuffer[instanceId];
+	const uint instance_id = id.x;
+	Boid boid = boid_buffer[instance_id];
 
-	float noise = clamp(noise1(_Time / 100.0 + boid.noise_offset), -1, 1) * 2.0 - 1.0;
+	const float boid_speed = group_params_buffer[boid.group_id].speed;
+	const uint team = group_params_buffer[boid.group_id].team;
+	const float attack_radius = group_params_buffer[boid.group_id].attack_radius;
+
 	//float velocity = BoidSpeed * (1.0 + noise * BoidSpeedVariation);
-	float velocity = BoidSpeed;
+	float velocity = boid_speed;
 
-	float2 boid_pos = boid.position;
-	float2 boid_dir = boid.direction;
+	const float2 boid_pos = boid.position;
+
 
 	float2 separation = float2(0.0, 0.0);
 	float2 to_target = boid.target_pos;
 
-	uint nearbyCount = 1; // Add self that is ignored in loop
-	float minSqrDist = NeighbourDistance * NeighbourDistance;
-	bool ready_to_run = true;
+	uint nearby_count = 1; // Add self that is ignored in loop
+	float min_sqr_dist = attack_radius * attack_radius;
+
 	boid.targeted_unit = -1;
-	float separationDesire = 0.0;
-	for (uint i = 0; i < BoidsCount; i++)
+	float separation_desire = 0.0;
+	for (uint i = 0; i < boids_count; i++)
 	{
-		if (i == instanceId)
+		if (i == instance_id)
 			continue;
-		
-		if (distance(boid_pos, boidBuffer[i].position) < NeighbourDistance)
+
+		const float2 to_other = boid_buffer[i].position - boid_pos;
+		const float sqr_dist = dot(to_other, to_other);
+
+		const uint other_team = group_params_buffer[boid_buffer[i].group_id].team;
+		if (other_team != team)
 		{
-			if(boidBuffer[i].team != boid.team)
+			if (sqr_dist < min_sqr_dist && sqr_dist < attack_radius * attack_radius)
 			{
-				float2 diff_enemy = boid_pos - boidBuffer[i].position;
-				float sqrDist = dot(diff_enemy, diff_enemy);
-				if (sqrDist < minSqrDist)
-				{
-					boid.targeted_unit = i;
-					minSqrDist = sqrDist;
-				}
+				boid.targeted_unit = i;
+				min_sqr_dist = sqr_dist;
 			}
-			float2 tempBoid_position = boidBuffer[i].position;
+		}
 
-			float2 diff = boid_pos - tempBoid_position;
-			float diffLen = (length(diff));
-			float scaler = clamp(1.0 - diffLen / NeighbourDistance, 0.0, 1.0);
+		if (sqr_dist < neighbour_distance * neighbour_distance)
+		{
+			const float2 temp_boid_position = boid_buffer[i].position;
 
-			separation += diff * (scaler/ diffLen);
-			separationDesire += scaler;
-			ready_to_run = false;
+			const float2 diff = boid_pos - temp_boid_position;
+			const float diff_len = (length(diff));
+			const float scaler = clamp(1.0 - diff_len / neighbour_distance, 0.0, 1.0);
 
-			nearbyCount += 1;
+			separation += diff * (scaler / diff_len);
+			separation_desire += scaler;
+
+			nearby_count += 1;
 		}
 	}
 
 
 	//float avg = 1.0 / nearbyCount;
 	//cohesion *= avg;
-	
+
 	to_target = norm(to_target - boid_pos);
-	
+
 	//separation = norm(separation);
 
-	float2 direction = separation+ to_target; //*(1-separationDesire)
+	const float2 direction = separation + to_target; //*(1-separationDesire)
 
 	//float ip = exp();
 	//boid.direction = lerp((direction), normalize(boid_dir), -RotationSpeed * DeltaTime);
 	boid.direction = norm(direction);
-	if(boid.targeted_unit != -1)
+	if (boid.targeted_unit != -1)
 	{
-		float2 from_target_unit = -norm(boidBuffer[boid.targeted_unit].position - boid.position);
+		const float2 from_target_unit = -norm(boid_buffer[boid.targeted_unit].position - boid.position);
 		float dot_p = dot(boid.direction, from_target_unit);
-		if(dot_p < 0.0)
+		if (dot_p < 0.0)
 		{
 			dot_p = 0.1;
 		}
@@ -127,7 +137,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 		//velocity = velocity * 0.1;
 	}
 
-	boid.position += (boid.direction) * (velocity * DeltaTime);
+	boid.position += (boid.direction) * (velocity * delta_time);
 
-	boidBuffer[id.x] = boid;
+	boid_buffer[id.x] = boid;
 }

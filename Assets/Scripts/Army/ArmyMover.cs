@@ -1,13 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using AI.Unit;
-using AI.Unit.Behaviours;
-using AI.Unit.Context;
+﻿using System.Linq;
 using Datastructures;
-using DefaultNamespace.AI.Unit;
 using DefaultNamespace.Enums;
-using Formations.Scripts;
-using Stats;
 using UnityEngine;
 
 namespace Army
@@ -29,17 +22,7 @@ namespace Army
 		{
 			Move();
 		}
-
-		// public void AccelerateTowards(Vector2 dir)
-		// {
-		// 	Vector2 accel = dir * _stats[ArmyStat.Acceleration];
-		// 	Vector2 newVel = _velocity + accel * Time.deltaTime;
-		//
-		// 	_velocity = _velocity.magnitude * newVel.normalized;
-		//
-		// 	_velocity = newVel.magnitude <= _stats[ArmyStat.Speed] ? newVel : _velocity;
-		// 	_velocity -= _velocity * _stats[ArmyStat.Deceleration] * Time.deltaTime;
-		// }
+		
 		public void SetTarget(Vector2 dir)
 		{
 			_center = _armyMoverArgs.Units.Units.Select(x => x.Position).Aggregate((x, y) => x + y) / _armyMoverArgs.Units.Units.Count;
@@ -61,7 +44,7 @@ namespace Army
 		}
 		public void MoveInRadius(Vector2 point)
 		{
-			var unitsInRadius = _armyMoverArgs.ArmyKDTree.GetNearestUnits(point, 3f);
+			var unitsInRadius = _armyMoverArgs.ArmyKDTree.GetUnitsInRadius(point, 3f);
 			foreach(var unit in unitsInRadius)
 			{
 				unit.MoveWithDir((-point + unit.Position).normalized * _armyMoverArgs.Stats[ArmyStat.Speed]);

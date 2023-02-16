@@ -15,29 +15,31 @@ namespace Army.Units
 		public EventHandler<UnitAttackedEventArgs> OnUnitAttackPerformed;
 
 
-		private ArmyKDTree _armyKDTree;
 
 		public IUnitAnimator Animator;
 		private Vector2 _target;
+
+		public UnitGroup Group{get; set;}
 		public StatDict<ArmyStat> Stats{get; private set;}
 		public Vector2 Position{get; set;}
 		public float Health{get; private set;}
 		public Vector2 Direction{get; set;}
 		public int TargetIndex{get; set;} = -1;
-		public uint Team{get; set;}
+
+		public uint UnitGroupIndex{get; set;}
+
 		public int XScale{get; set;} = 1;
 		public Vector2 TargetPos{get; set;}
 
 		private float _timeSinceLastAttack = 0;
 		private Vector2 _pushForce = Vector2.zero;
 
-		public Unit(float health, Vector2 position, ArmyKDTree armyKDTree, StatDict<ArmyStat> stats, uint team, IUnitAnimator animator)
+		public Unit(float health, Vector2 position, StatDict<ArmyStat> stats, IUnitAnimator animator)
 		{
 			Health = health;
 			Position = position;
-			_armyKDTree = armyKDTree;
 			Stats = stats;
-			Team = team;
+
 			Animator = animator;
 			Ticker.AddTickable(this);
 		}

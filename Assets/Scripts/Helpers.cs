@@ -1,10 +1,20 @@
 ﻿using System.Collections.Generic;
+using Army.Units;
 using UnityEngine;
 
 namespace DefaultNamespace
 {
 	public static class Helpers
 	{
+		public static Vector2[] GetUnitPositions(this List<Unit> units)
+		{
+			var positions = new Vector2[units.Count];
+			for(var i = 0; i < units.Count; i++)
+			{
+				positions[i] = units[i].Position;
+			}
+			return positions;
+		}
 		public static float CalculateArmyRange(int initialUnits, float density)
 		{
 			return Mathf.Sqrt(initialUnits / density);

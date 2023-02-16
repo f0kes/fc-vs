@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using AI.GPUFlock;
 using Army.Units.UnitEventArgs;
+using DefaultNamespace.Enums;
+using Stats;
 using UnityEngine;
 
 namespace Army.Units
@@ -10,18 +12,46 @@ namespace Army.Units
 	{
 		private GPUUnitDraw[] _unitBuffer;
 		public List<Unit> Units{get; private set;} = new List<Unit>();
+		private StatDict<ArmyStat> Stats{get; set;}
+		public uint Team{get; set;}
 		public event Action<Unit> OnUnitAdded;
 		public event Action<Unit> OnUnitRemoved; 
-
-
-		public UnitGroup()
+		
+		
+		public static UnitGroup FromGroups(List<UnitGroup> groups)
 		{
+			var unitGroup = new UnitGroup(groups[0].Stats, groups[0].Team);
+			foreach(var group in groups)
+			{
+				foreach(var unit in group.Units)
+				{
+					unitGroup.AddUnit(unit);
+				}
+			}
+			return unitGroup;
+		}
+
+		public UnitGroup(StatDict<ArmyStat> stats, uint team)
+		{
+			Stats = stats;
+			Team = team;
 			AllUnits.AddUnitGroup(this);
 		}
 		~UnitGroup()
 		{
 			AllUnits.RemoveUnitGroup(this);
 		}
+
+		public GPUUnitGroup GetGPUUnitGroup()
+		{
+			return new GPUUnitGroup
+			{
+				Speed = Stats[ArmyStat.Speed],
+				Team = Team,
+				AttackRange = Stats[ArmyStat.AttackRange]
+			};
+		}
+
 		public GPUUnitDraw[] Serialize()
 		{
 			_unitBuffer = new GPUUnitDraw[Units.Count];
@@ -30,8 +60,6 @@ namespace Army.Units
 				_unitBuffer[i].Position = Units[i].Position;
 				_unitBuffer[i].Direction = Units[i].Direction;
 				_unitBuffer[i].TargetPos = Units[i].TargetPos;
-				_unitBuffer[i].Noise_Offset = 1f;
-				_unitBuffer[i].Team = Units[i].Team;
 			}
 			return _unitBuffer;
 		}
@@ -58,6 +86,7 @@ namespace Army.Units
 		public void AddUnit(Unit unit)
 		{
 			Units.Add(unit);
+			unit.Group = this;
 			unit.OnUnitKilled += RemoveUnit;
 			OnUnitAdded?.Invoke(unit);
 

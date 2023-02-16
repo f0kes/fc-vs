@@ -51,7 +51,7 @@ namespace Army
 
 		public void MoveInRadius(Vector2 point)
 		{
-			var unitsInRadius = _args.ArmyKDTree.GetNearestUnitsRadius(point, 3f);
+			var unitsInRadius = _args.ArmyKDTree.GetUnitsInRadius(point, 3f);
 			foreach(var unit in unitsInRadius)
 			{
 				//unit.MoveWithDir((-point + unit.Position).normalized * _args.Stats[ArmyStat.Speed]);

@@ -3,17 +3,18 @@ using AI.GPUFlock;
 
 namespace Army.Units
 {
-	public class AllUnits : IUnitGroupSerializer
+	public class AllUnits
 	{
 		private static List<UnitGroup> _unitGroups = new List<UnitGroup>();
 
 		public static Unit[] Units;
 		private static int[] _bufferSizes;
 		private static GPUUnitDraw[] _unitsBuffer;
-		
+		private static GPUUnitGroup[] _groupsBuffer;
+
 		static AllUnits()
 		{
-			FlocksHandler.Serializers.Add(new AllUnits());
+			FlocksHandler.Serializer = new AllUnits();
 		}
 		public static void AddUnitGroup(UnitGroup unitGroup)
 		{
@@ -23,14 +24,16 @@ namespace Army.Units
 		{
 			_unitGroups.Remove(unitGroup);
 		}
-		private static void UpdateUnits()
+		private static void SerialiseUnits()
 		{
 			var unitGroups = new Unit[_unitGroups.Count][];
 			_bufferSizes = new int[_unitGroups.Count];
+			
 
 			for(var i = 0; i < _unitGroups.Count; i++)
 			{
 				unitGroups[i] = _unitGroups[i].Units.ToArray();
+				//_unitsBuffer[i].GroupId = (uint)i;
 			}
 
 			//get all buffer sizes sum
@@ -43,15 +46,29 @@ namespace Army.Units
 			}
 
 			Units = new Unit[bufferSize];
+			_unitsBuffer = new GPUUnitDraw[bufferSize];
 			int pointer = 0;
 			//concat all buffers
-			foreach(var buffer in unitGroups)
+			for(var i = 0; i < unitGroups.Length; i++)
 			{
+				var buffer = unitGroups[i];
+				foreach(var unit in buffer)
+				{
+					unit.UnitGroupIndex = (uint)i;
+				}
 				buffer.CopyTo(Units, pointer);
 				pointer += buffer.Length;
 			}
+
+			for(var i = 0; i < Units.Length; i++)
+			{
+				_unitsBuffer[i].Position = Units[i].Position;
+				_unitsBuffer[i].Direction = Units[i].Direction;
+				_unitsBuffer[i].TargetPos = Units[i].TargetPos;
+				_unitsBuffer[i].GroupId = Units[i].UnitGroupIndex;
+			}
 		}
-		private static void UpdateGroups()
+		private static void DeserialiseUnits()
 		{
 			var pointer = 0;
 			for(var i = 0; i < _unitGroups.Count; i++)
@@ -64,22 +81,29 @@ namespace Army.Units
 				pointer += buffer.Length;
 			}
 		}
-		public GPUUnitDraw[] Serialize()
+
+		private static void SerialiseGroups()
 		{
-			UpdateUnits();
-			_unitsBuffer = new GPUUnitDraw[Units.Length];
-			for(var i = 0; i < Units.Length; i++)
+			_groupsBuffer = new GPUUnitGroup[_unitGroups.Count];
+			for(var i = 0; i < _unitGroups.Count; i++)
 			{
-				_unitsBuffer[i].Position = Units[i].Position;
-				_unitsBuffer[i].Direction = Units[i].Direction;
-				_unitsBuffer[i].TargetPos = Units[i].TargetPos;
-				_unitsBuffer[i].Noise_Offset = 1f;
-				_unitsBuffer[i].Team = Units[i].Team;
+				_groupsBuffer[i] = _unitGroups[i].GetGPUUnitGroup();
 			}
+		}
+
+		public GPUUnitGroup[] GetGroups()
+		{
+			SerialiseGroups();
+			return _groupsBuffer;
+		}
+
+		public GPUUnitDraw[] GetUnits()
+		{
+			SerialiseUnits();
 			return _unitsBuffer;
 		}
 
-		public void Deserialize(GPUUnitDraw[] buffer)
+		public void DeserializeUnits(GPUUnitDraw[] buffer)
 		{
 			_unitsBuffer = buffer;
 			for(var i = 0; i < buffer.Length; i++)
@@ -88,7 +112,7 @@ namespace Army.Units
 				Units[i].Direction = _unitsBuffer[i].Direction;
 				Units[i].TargetIndex = _unitsBuffer[i].TargetedUnit;
 			}
-			UpdateGroups();
+			DeserialiseUnits();
 		}
 	}
 }
