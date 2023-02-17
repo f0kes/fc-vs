@@ -50,12 +50,9 @@ namespace Graphics
 			Batches.Add(batch);
 			var colors = new List<Vector4>();
 			var frameIndexes = new List<float>();
-			var healthStat = army[0].Stats[ArmyStat.Health];
-			for(var i = 0; i < army.Count; i++)
+			foreach(var unit in army)
 			{
-				var scale = army[i].Health / healthStat;
-
-				var position = new Vector3(army[i].Position.x, 0, army[i].Position.y);
+				var position = new Vector3(unit.Position.x, 0, unit.Position.y);
 				if(Batches[^1].Matrices.Count > 1000)
 				{
 					batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
@@ -65,10 +62,10 @@ namespace Graphics
 					batch = new MeshData() { Matrices = new List<Matrix4x4>(), MaterialPropertyBlock = new MaterialPropertyBlock() };
 					Batches.Add(batch);
 				}
-				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, new Vector3(army[i].XScale, 1, 1)));
+				Batches[^1].Matrices.Add(Matrix4x4.TRS(position + _offset, Quaternion.identity, new Vector3(unit.XScale, 1, 1)));
 
-				colors.Add(new Vector4(1, 0, 0, 0));//(1 - scale)*0.5f
-				frameIndexes.Add(army[i].Animator.CurrentFrameIndex);
+				colors.Add(unit.Animator.ColorAdd); //(1 - scale)*0.5f
+				frameIndexes.Add(unit.Animator.CurrentFrameIndex);
 			}
 			batch.MaterialPropertyBlock.SetVectorArray(Color1, colors);
 			batch.MaterialPropertyBlock.SetFloatArray(SpriteSheetIndex, frameIndexes);

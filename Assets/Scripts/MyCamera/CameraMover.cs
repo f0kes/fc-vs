@@ -1,10 +1,11 @@
 ﻿using System;
+using Player;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace MyCamera
 {
-	public class CameraMover : MonoBehaviour
+	public class CameraMover : MonoBehaviour, IPointerProvider
 	{
 		[SerializeField] private Transform _cameraTarget;
 		[SerializeField] private Transform _pivotTransform;
@@ -157,6 +158,10 @@ namespace MyCamera
 			_followTargetLastFrame = followPos;
 		}
 
+		public Vector2 GetPointerPosition()
+		{
+			return _pivotPosition;
+		}
 	}
 
 }

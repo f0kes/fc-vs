@@ -6,37 +6,51 @@ using UnityEngine;
 
 namespace Player
 {
-	public class UnitGroupSelector : ITickable
+
+	public class UnitGroupSelector : MonoBehaviour
 	{
+		[SerializeField] private float _selectionRadius = 2f;
 		public event Action<UnitGroup> OnUnitGroupSelected;
 		public event Action<UnitGroup> OnUnitGroupHovered;
 
-		private UnitGroup _currentHoveredGroup;
+		public event Action<UnitGroup> OnUnitGroupUnhovered;
 
 		private IPointerProvider _pointerProvider;
-		public UnitGroupSelector(IPointerProvider pointerProvider)
+
+		public IPointerProvider PointerProvider
 		{
-			_pointerProvider = pointerProvider;
-			Ticker.AddTickable(this);
-		}
-		~UnitGroupSelector()
-		{
-			Ticker.RemoveTickable(this);
+			set
+			{
+				if(_pointerProvider != null)
+					throw new Exception("PointerProvider is already set");
+				_pointerProvider = value;
+			}
 		}
 
-		public void OnTick(Ticker.OnTickEventArgs args)
+		private UnitGroup _currentHoveredGroup;
+
+
+
+
+		public void Update()
 		{
 			var pointerPosition = _pointerProvider.GetPointerPosition();
 			var hoveredGroup = Army.Army.KDTree.GetNearestUnits(pointerPosition, 1);
 			if(hoveredGroup.Count == 0)
 			{
-				_currentHoveredGroup = null;
+				Dehover();
 				return;
 			}
 			var hoveredUnit = hoveredGroup[0];
+			if((hoveredUnit.Position - pointerPosition).sqrMagnitude > _selectionRadius * _selectionRadius)
+			{
+				Dehover();
+				return;
+			}
 			var hoveredUnitGroup = hoveredUnit.Group;
 			if(hoveredUnitGroup != _currentHoveredGroup)
 			{
+				Dehover();
 				_currentHoveredGroup = hoveredUnitGroup;
 				OnUnitGroupHovered?.Invoke(_currentHoveredGroup);
 			}
@@ -44,6 +58,15 @@ namespace Player
 			{
 				OnUnitGroupSelected?.Invoke(_currentHoveredGroup);
 			}
+		}
+		private void Dehover()
+		{
+			if(_currentHoveredGroup != null)
+			{
+				OnUnitGroupUnhovered?.Invoke(_currentHoveredGroup);
+			}
+			_currentHoveredGroup = null;
+			return;
 		}
 	}
 }

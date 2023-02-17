@@ -10,30 +10,20 @@ namespace Army.Units
 {
 	public class UnitGroup : IUnitGroupSerializer
 	{
+		public Army Army{get; private set;}
 		private GPUUnitDraw[] _unitBuffer;
 		public List<Unit> Units{get; private set;} = new List<Unit>();
 		private StatDict<ArmyStat> Stats{get; set;}
+
 		public uint Team{get; set;}
 		public event Action<Unit> OnUnitAdded;
-		public event Action<Unit> OnUnitRemoved; 
-		
-		
-		public static UnitGroup FromGroups(List<UnitGroup> groups)
-		{
-			var unitGroup = new UnitGroup(groups[0].Stats, groups[0].Team);
-			foreach(var group in groups)
-			{
-				foreach(var unit in group.Units)
-				{
-					unitGroup.AddUnit(unit);
-				}
-			}
-			return unitGroup;
-		}
+		public event Action<Unit> OnUnitRemoved;
 
-		public UnitGroup(StatDict<ArmyStat> stats, uint team)
+
+		public UnitGroup(Army army, uint team)
 		{
-			Stats = stats;
+			Army = army;
+			Stats = Army.Stats;
 			Team = team;
 			AllUnits.AddUnitGroup(this);
 		}
@@ -92,7 +82,6 @@ namespace Army.Units
 
 			void RemoveUnit(object sender, UnitKilledEventArgs eventArgs)
 			{
-				
 				Units.Remove(unit);
 				unit.OnUnitKilled -= RemoveUnit;
 				OnUnitRemoved?.Invoke(unit);

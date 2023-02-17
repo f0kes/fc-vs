@@ -23,12 +23,13 @@ namespace Army
 	public class Army : MonoBehaviour
 	{
 		public static readonly ArmyKDTree KDTree = new ArmyKDTree();
-		
+
 		private IArmyInstancer _armyInstancer;
 		private IArmyMover _armyMover;
 		private IInputHandler _inputHandler;
+		private IInputHandler _defaultInputHandler;
 		private FormationBase _formation;
-		
+
 		private ArmyAnimator _armyAnimator;
 
 		[SerializeField] private SerializableArmyStats _serializableArmyStats;
@@ -49,18 +50,19 @@ namespace Army
 		private void Awake()
 		{
 			Stats = _serializableArmyStats.GetStats();
-			_units = new UnitGroup(Stats, _team);
+			_units = new UnitGroup(this, _team);
 			KDTree.AddUnitGroup(_units);
 
 			_unitAnimationCollection.Initialize();
 			_armyInstancer = GetComponent<IArmyInstancer>();
 			_armyMover = GetComponent<IArmyMover>();
 			_inputHandler = GetComponent<IInputHandler>();
+			_defaultInputHandler = _inputHandler;
 
 
 			_formation = new PointFormation();
 
-			
+
 			//Teams.AddArmyToTeam(this);
 		}
 
@@ -72,9 +74,22 @@ namespace Army
 				Team = _team
 			};
 			_armyMover.Init(armyMoverArgs);
-			_inputHandler.InputEvents.OnMove += _armyMover.SetTarget;
+			SetInputHandler(_inputHandler);
 			//_inputHandler.OnClick += _armyMover.MoveInRadius;
 			_armyInstancer.CreateInstances(_units.Units);
+		}
+
+		public void SetInputHandler(IInputHandler inputHandler)
+		{
+			if(_inputHandler != null)
+				_inputHandler.InputEvents.OnMove -= _armyMover.SetTarget;
+			_inputHandler = inputHandler;
+			_inputHandler.InputEvents.OnMove += _armyMover.SetTarget;
+		}
+		public void ResetInputHandler()
+		{
+			_inputHandler.InputEvents.OnMove -= _armyMover.SetTarget;
+			_inputHandler = _defaultInputHandler;
 		}
 
 

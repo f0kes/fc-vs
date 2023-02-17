@@ -14,6 +14,8 @@ namespace Graphics
 		private float _timeForFrame;
 		private float _timeForCurrentFrame;
 		private bool _animationFinished = true;
+		public Color ColorAdd{get; set;}
+
 		public int CurrentFrameIndex{get; private set;}
 		public DefaultUnitAnimator(UnitAnimationCollection animationCollection)
 		{
