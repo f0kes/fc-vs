@@ -22,6 +22,7 @@ namespace Army
 	[RequireComponent(typeof(IInputHandler))]
 	public class Army : MonoBehaviour
 	{
+		public static List<Army> Armies = new List<Army>();
 		public static readonly ArmyKDTree KDTree = new ArmyKDTree();
 
 		private IArmyInstancer _armyInstancer;
@@ -37,18 +38,22 @@ namespace Army
 		[SerializeField] private int _initialUnits = 6000;
 		[SerializeField] private uint _team = 0;
 		[SerializeField] private UnitAnimationCollection _unitAnimationCollection;
+		[SerializeField] public ArmyLeader Leader;
 
 		//perfect density is 15 per square unit
 		[SerializeField] private float _unitDensity = 15f;
 
 		private UnitGroup _units;
 		public UnitGroup Units => _units;
+		public uint Team => _team;
+
 		public StatDict<ArmyStat> Stats = new StatDict<ArmyStat>();
 
 
 
 		private void Awake()
 		{
+			Armies.Add(this);
 			Stats = _serializableArmyStats.GetStats();
 			_units = new UnitGroup(this, _team);
 			KDTree.AddUnitGroup(_units);
@@ -64,6 +69,12 @@ namespace Army
 
 
 			//Teams.AddArmyToTeam(this);
+		}
+		private void OnDestroy()
+		{
+			Armies.Remove(this);
+			KDTree.RemoveUnitGroup(_units);
+			_inputHandler.InputEvents.OnMove -= _armyMover.SetTarget;
 		}
 
 		private void Start()
@@ -88,8 +99,7 @@ namespace Army
 		}
 		public void ResetInputHandler()
 		{
-			_inputHandler.InputEvents.OnMove -= _armyMover.SetTarget;
-			_inputHandler = _defaultInputHandler;
+			SetInputHandler(_defaultInputHandler);
 		}
 
 

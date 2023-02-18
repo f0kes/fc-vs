@@ -15,6 +15,10 @@ namespace DefaultNamespace
 			}
 			return positions;
 		}
+		public static Vector2 NormalizeIfLong(this Vector2 v)
+		{
+			return v.sqrMagnitude > 1 ? v.normalized : v;
+		}
 		public static float CalculateArmyRange(int initialUnits, float density)
 		{
 			return Mathf.Sqrt(initialUnits / density);

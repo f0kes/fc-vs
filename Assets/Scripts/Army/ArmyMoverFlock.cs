@@ -28,7 +28,9 @@ namespace Army
 		{
 			_args = args;
 			Ticker.AddTickable(this);
-			_initialTargetPos = _targetTransform.position;
+			var position = _targetTransform.position;
+			_target.Set(new Vector2(position.x, position.z));
+			_initialTargetPos = position;
 		}
 
 		public void OnTick(Ticker.OnTickEventArgs obj)
@@ -41,7 +43,7 @@ namespace Army
 		public void SetTarget(Vector2 dir)
 		{
 			SetTargetMove(dir);
-			_targetTransform.position = new Vector3(_target.Value.x, 0, _target.Value.y) + _initialTargetPos;
+			_targetTransform.position = new Vector3(_target.Value.x, 0, _target.Value.y + _initialTargetPos.y);
 		}
 		private void SetTargetMove(Vector2 dir)
 		{

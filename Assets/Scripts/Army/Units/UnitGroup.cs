@@ -5,6 +5,7 @@ using Army.Units.UnitEventArgs;
 using DefaultNamespace.Enums;
 using Stats;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Army.Units
 {
@@ -85,6 +86,10 @@ namespace Army.Units
 				Units.Remove(unit);
 				unit.OnUnitKilled -= RemoveUnit;
 				OnUnitRemoved?.Invoke(unit);
+				if(Units.Count == 0)
+				{
+					Object.Destroy(Army.gameObject);
+				}
 			}
 		}
 	}

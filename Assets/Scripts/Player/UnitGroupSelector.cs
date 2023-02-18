@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Army.Units;
 using Army;
 using GameState;
@@ -10,6 +11,7 @@ namespace Player
 	public class UnitGroupSelector : MonoBehaviour
 	{
 		[SerializeField] private float _selectionRadius = 2f;
+		[SerializeField] private int _teamId = 0;
 		public event Action<UnitGroup> OnUnitGroupSelected;
 		public event Action<UnitGroup> OnUnitGroupHovered;
 
@@ -35,7 +37,11 @@ namespace Player
 		public void Update()
 		{
 			var pointerPosition = _pointerProvider.GetPointerPosition();
-			var hoveredGroup = Army.Army.KDTree.GetNearestUnits(pointerPosition, 1);
+			var hoveredGroup =
+				Army.Army.KDTree
+					.GetNearestUnits(pointerPosition, 1)
+					.Where(u => u.Group.Team == _teamId)
+					.ToList();
 			if(hoveredGroup.Count == 0)
 			{
 				Dehover();

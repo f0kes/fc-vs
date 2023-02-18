@@ -43,7 +43,8 @@ namespace Player
 			group.Army.SetInputHandler(_inputHandler);
 
 			_selectedGroup = group;
-			group.Units.ForEach(unit => unit.Animator.ColorAdd = new Color(1, 1, 1, 1));
+			group.Units.ForEach(unit => unit.Animator.ColorAdd = new Color(1, 1, 1, 0));
+			_cameraMover.AssignTarget(group.Army.Leader.transform);
 		}
 	}
 }

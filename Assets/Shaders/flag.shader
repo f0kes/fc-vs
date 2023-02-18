@@ -10,6 +10,7 @@ Shader "Unlit/Flag"
         _WaveFrequency ("WaveFrequency", Float) = 300
         _WaveAmplitude ("WaveAmplitude", Float) = 30
         _WaveSpeed ("WaveSpeed", Float) = 5
+        _Height ("Height", Float) = 0
     }
     SubShader
     {
@@ -59,6 +60,7 @@ Shader "Unlit/Flag"
             float _WaveFrequency;
             float _WaveAmplitude;
             float _WaveSpeed;
+            float _Height;
 
             UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _ColorAdd)
@@ -69,23 +71,39 @@ Shader "Unlit/Flag"
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
-
-                float4 screen_pos = ComputeScreenPos(v.vertex);
+                
                 o.uv = v.uv.xy;
 
-
+                
                 // billboard mesh towards camera
-                float3 vpos = mul((float3x3)unity_ObjectToWorld, v.vertex.xyz);
+              
                 float4 worldCoord = float4(unity_ObjectToWorld._m03, unity_ObjectToWorld._m13, unity_ObjectToWorld._m23,
                                            1);
-                float4 viewPos = mul(UNITY_MATRIX_V, worldCoord) + float4(vpos, 0);
-                float4 outPos = mul(UNITY_MATRIX_P, viewPos);
+                float2 scale = float2(
+                    length(unity_ObjectToWorld._m00_m10_m20),
+                    length(unity_ObjectToWorld._m01_m11_m21)
+                    );
+
+                
+                
+                float4 viewPos = mul(UNITY_MATRIX_V, worldCoord);
+
+                float2 vertex = v.vertex.xy * scale;
+                vertex *= -viewPos.z;
+                viewPos.xy += vertex;
+                viewPos.y += _Height * -viewPos.z ;
+               
+                float4 outPos =  mul(UNITY_MATRIX_P, viewPos);
+                
+                
 
                 float waveMultiplier = 1 - o.uv.y;
 
                 //change y to time*xpos
-                outPos.y = outPos.y + (sin(v.vertex.x * _WaveFrequency + _Time.y * _WaveSpeed) / _WaveAmplitude * waveMultiplier);
-                outPos.x = outPos.x + (cos(v.vertex.y * _WaveFrequency + _Time.y * _WaveSpeed) / _WaveAmplitude * waveMultiplier);
+                outPos.y = outPos.y + (sin(v.vertex.x * _WaveFrequency + _Time.y * _WaveSpeed) / _WaveAmplitude *
+                    waveMultiplier);
+                outPos.x = outPos.x + (cos(v.vertex.y * _WaveFrequency + _Time.y * _WaveSpeed) / _WaveAmplitude *
+                    waveMultiplier);
                 o.pos = outPos;
 
                 UNITY_TRANSFER_FOG(o, o.vertex);

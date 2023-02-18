@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Formations.Scripts;
 using UnityEngine;
 
+//create asset menu
+[CreateAssetMenu(fileName = "BoxFormation", menuName = "Formations/BoxFormation")]
 public class BoxFormation : FormationBase
 {
 	private int _rows = 0;

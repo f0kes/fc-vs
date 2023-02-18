@@ -71,6 +71,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 	const float2 boid_pos = boid.position;
 
 
+	float2 alignment = float2(0.0, 0.0);
 	float2 separation = float2(0.0, 0.0);
 	float2 to_target = boid.target_pos;
 
@@ -104,18 +105,22 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 			const float2 diff = boid_pos - temp_boid_position;
 			const float diff_len = (length(diff));
 			const float scaler = clamp(1.0 - diff_len / neighbour_distance, 0.0, 1.0);
-
+			
 			separation += diff * (scaler / diff_len);
 			separation_desire += scaler;
+			if(other_team == team)
+			{
+				alignment += boid_buffer[i].direction;
+			}
 
 			nearby_count += 1;
 		}
 	}
 
 
-	//float avg = 1.0 / nearbyCount;
+	float avg = 1.0 / nearby_count;
 	//cohesion *= avg;
-
+	alignment *= avg;
 	to_target = norm(to_target - boid_pos);
 
 	//separation = norm(separation);
@@ -124,7 +129,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 
 	//float ip = exp();
 	//boid.direction = lerp((direction), normalize(boid_dir), -RotationSpeed * DeltaTime);
-	boid.direction = norm(direction);
+	//boid.direction = norm(direction);
 	if (boid.targeted_unit != -1)
 	{
 		const float2 from_target_unit = -norm(boid_buffer[boid.targeted_unit].position - boid.position);
@@ -136,7 +141,9 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
 		velocity = velocity * dot_p;
 		//velocity = velocity * 0.1;
 	}
-
+	
+	//float ip = exp(-10 * delta_time);
+	boid.direction = lerp((direction), norm(boid.direction), 0.9);
 	boid.position += (boid.direction) * (velocity * delta_time);
 
 	boid_buffer[id.x] = boid;

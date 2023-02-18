@@ -28,6 +28,8 @@ namespace MyCamera
 		private Vector2 _pivotDelta;
 		private Vector3 _dragOrigin;
 
+		private Vector3 _cameraRay;
+
 		private Vector3 _desiredPosition;
 		private Vector2 _targetVelocity;
 
@@ -35,11 +37,12 @@ namespace MyCamera
 		private float _rotationX;
 
 		private Vector3 _zoomDesiredPosition;
-		
+
 		private Vector3 _followTargetLastFrame;
 
 		private bool _isDragging;
 		private bool _isRotating;
+		private bool _isFollowing;
 		private void Start()
 		{
 			var position = _pivotTransform.position;
@@ -60,9 +63,22 @@ namespace MyCamera
 		{
 			_pivotLastFrame = _pivotPosition;
 			var ray = _camera.ScreenPointToRay(Input.mousePosition);
-			if(!Physics.Raycast(ray, out var hit)) return;
-			_pivotPosition = new Vector2(hit.point.x, hit.point.z);
-			_pivotTransform.position = new Vector3(_pivotPosition.x, 0, _pivotPosition.y);
+			if(Physics.Raycast(ray, out var hit))
+			{
+				_pivotPosition = new Vector2(hit.point.x, hit.point.z);
+				_pivotTransform.position = new Vector3(_pivotPosition.x, 0, _pivotPosition.y);
+			}
+			var rayCameraCenter = _camera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2));
+			if(Physics.Raycast(rayCameraCenter, out var hitCameraCenter))
+			{
+				_cameraRay = hitCameraCenter.point;
+			}
+		}
+		public void AssignTarget(Transform target)
+		{
+			_followTarget = target;
+			_followTargetLastFrame = target.position;
+			_isFollowing = true;
 		}
 		private void Move()
 		{
@@ -120,6 +136,7 @@ namespace MyCamera
 			{
 				_isRotating = true;
 				_rotationPoint = _pivotTransform.position;
+				
 			}
 			if(Input.GetMouseButtonUp(1))
 			{
@@ -128,6 +145,10 @@ namespace MyCamera
 
 			if(_isRotating)
 			{
+				if(_isFollowing)
+				{
+					_rotationPoint = _followTarget.position;
+				}
 				var x = Input.GetAxis("Mouse X");
 				var y = -Input.GetAxis("Mouse Y");
 
@@ -149,10 +170,14 @@ namespace MyCamera
 
 		private void AdjustToTarget()
 		{
+			
+			if(!_isFollowing) return;
+			if(_followTarget == null) return;
 			var followPos = _followTarget.position;
+			followPos.y = 0;
 			var targetPos = _cameraTarget.position;
 			var followDelta = followPos - _followTargetLastFrame;
-			followPos.y = 0;
+
 			targetPos += followDelta;
 			_cameraTarget.position = targetPos;
 			_followTargetLastFrame = followPos;
